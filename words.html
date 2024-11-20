@@ -104,6 +104,16 @@
             flex: 1;
             }
 
+        .search-box {
+            margin: 20px;
+            padding: 10px;
+            width: 70%;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            margin-left: 200px;
+        }
+
         </style>
 
         <link rel="icon" href="12.png" type="image/icon type">
@@ -116,6 +126,13 @@
 
 
         <script>
+
+        function searchWords() {
+            const query = document.getElementById('search-box').value.toLowerCase();
+            const filteredBooks = books.filter(book => book.word.toLowerCase().includes(query));
+            render(filteredBooks);
+        }
+          
           function hide() {
             var x = document.getElementById("myDIV");
             if (x.style.display === "none") {
@@ -185,6 +202,13 @@
      Hide
   </button>
 
+    <input
+        type="text"
+        id="search-box"
+        class="search-box"
+        placeholder="Search words..."
+        onkeyup="searchWords()"
+    />
       
 
 
