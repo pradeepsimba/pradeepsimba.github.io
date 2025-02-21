@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="12.png" type="image/icon type">
+    <title>Video Player</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f0f0f0; /* Light mode background */
+            color: #333; /* Light mode text color */
+            margin: 0;
+            transition: background-color 0.3s, color 0.3s; /* Smooth transition for dark mode toggle */
+        }
+
+        body.dark-mode {
+            background-color: #121212; /* Dark mode background */
+            color: #eee; /* Dark mode text color */
+        }
+
+        #videotrack {
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Consistent shadow */
+        }
+
+        body.dark-mode #videotrack {
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1); /* Lighter shadow in dark mode */
+        }
+
+        video {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .button {
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Dark mode styles for button */
+        body.dark-mode .button {
+            background-color: #2196f3; /* Slightly different blue in dark mode */
+        }
+
+        body.dark-mode .button:hover {
+            background-color: #1976d2;
+        }
+
+        /* Dark mode toggle switch styles */
+        .dark-mode-toggle {
+            margin-bottom: 20px; /* Space above the toggle */
+            display: flex;
+            align-items: center;
+        }
+
+        .dark-mode-toggle label {
+            margin-right: 10px;
+            color: inherit; /* Inherit text color from body */
+        }
+
+        .dark-mode-toggle input[type="checkbox"] {
+            appearance: none; /* Remove default checkbox appearance */
+            width: 50px;
+            height: 25px;
+            background-color: #ccc;
+            border-radius: 15px;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+
+        .dark-mode-toggle input[type="checkbox"]:checked {
+            background-color: #2196f3;
+        }
+
+        .dark-mode-toggle input[type="checkbox"]::before {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 21px;
+            height: 21px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .dark-mode-toggle input[type="checkbox"]:checked::before {
+            transform: translateX(25px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dark-mode-toggle">
+        <label for="dark-mode-switch">Dark Mode:</label>
+        <input type="checkbox" id="dark-mode-switch">
+    </div>
+
+    <div id="videotrack"></div>
+
+    <button class="button" onclick="setVideo()">Play Video</button>
+
+    <script>
+        function setVideo() {
+            const j = window.location.href;
+            const url = new URL(j);
+            const fi = url.searchParams.get('video');
+            const WhichVideo = fi + "?raw=true";
+
+            document.getElementById('videotrack').innerHTML = `
+                <video controls width="640" height="360">
+                    <source src='${WhichVideo}' type="video/mp4"/> 
+                    Your browser does not support the video element.
+                </video>
+            `;
+        }
+
+        // Dark mode toggle functionality
+        // Dark mode toggle functionality with local storage
+        const darkModeSwitch = document.getElementById('dark-mode-switch');
+        const body = document.body; // Store body element for easier access
+
+        // Function to save dark mode preference to local storage
+        function saveDarkModePreference(isDarkMode) {
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+
+        // Function to load dark mode preference from local storage
+        function loadDarkModePreference() {
+            const savedMode = localStorage.getItem('darkMode');
+            if (savedMode === 'true') {
+                body.classList.add('dark-mode');
+                darkModeSwitch.checked = true; // Update checkbox state
+            }
+        }
+
+        // Load preference on page load
+        loadDarkModePreference();
+
+        darkModeSwitch.addEventListener('change', () => {
+            body.classList.toggle('dark-mode');
+            saveDarkModePreference(body.classList.contains('dark-mode')); // Save on change
+        });
+    </script>
+
+</body>
+</html>
