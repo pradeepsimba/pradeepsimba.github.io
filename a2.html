@@ -28,23 +28,27 @@
         
         <button class="btn btn-primary w-100 mb-3" onclick="generateConfig()">Generate Config</button>
         
-        <h3 class="mt-4">Generated Nginx Configuration:</h3>
+        <h3 class="mt-4">default.conf</h3>
         <textarea id="configOutput" class="form-control" rows="6" readonly></textarea>
         
-        <h3 class="mt-4">Generated Docker Compose:</h3>
+        <h3 class="mt-4">docker-compose.yml</h3>
         <textarea id="composeOutput" class="form-control" rows="6" readonly></textarea>
         
-        <h3 class="mt-4">Generated Dockerfile:</h3>
+        <h3 class="mt-4">Dockerfile</h3>
         <textarea id="dockerfileOutput" class="form-control" rows="6" readonly></textarea>
         
-        <h3 class="mt-4">Generated Django Settings:</h3>
+        <h3 class="mt-4">Enter in Django Settings:</h3>
         <textarea id="djangoSettings" class="form-control" rows="6" readonly></textarea>
         
-        <h3 class="mt-4">Remove Old Containers:</h3>
+        <h3 class="mt-4">remove-old.sh</h3>
         <textarea id="remove_old_containers" class="form-control" rows="3" readonly></textarea>
         
-        <h3 class="mt-4">Follow Docker Logs:</h3>
+        <h3 class="mt-4">log.sh</h3>
         <textarea id="docker_logs" class="form-control" rows="3" readonly></textarea>
+
+        <h3 class="mt-4">deploy.sh</h3>
+        <p>sudo apt update && sudo apt upgrade && sudo snap refresh && git pull && docker-compose build && docker-compose up -d</p>
+        
     </div>
 
     <script>
