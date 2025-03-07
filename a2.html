@@ -62,7 +62,8 @@
             
                 // Deploy Script
             const deployScript = `sudo apt update && sudo apt upgrade && sudo snap refresh && git pull && docker-compose up -d --build --no-deps && docker-compose up -d --no-recreate`;
-
+            const lastTwoDigits = parseInt(port1.slice(-2), 10) + 433;
+            console.log(lastTwoDigits);
         // Set the output values
            document.getElementById('deploy_script').value = deployScript;
 
@@ -121,7 +122,7 @@
     image: nginx:latest
     ports:
       - "${port1}:${port1}"
-      - "443:443"
+      - "${lastTwoDigits}:443"
     volumes:
       - ./default.conf:/etc/nginx/conf.d/default.conf
       - static_volume:/app/static
