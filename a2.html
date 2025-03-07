@@ -70,7 +70,7 @@
             // Nginx Configuration
             const nginxConfig = `server {
     listen ${port1} ssl;
-    server_name a2.mpulse.plus;
+    server_name ${djangoContainer}.a2.mpulse.plus;
 
     ssl_certificate /etc/nginx/ssl/a2.mpulse.plus.crt;
     ssl_certificate_key /etc/nginx/ssl/a2_mpulse_plus_private.key;
@@ -89,7 +89,7 @@
     client_max_body_size 500M;
 
     location / {
-        proxy_pass http://${djangoContainer}:${port2};
+        proxy_pass http://${djangoContainer}django_app:${port2};
         proxy_http_version 1.1;
         proxy_set_header Connection "";
         proxy_set_header Host $host;
@@ -105,7 +105,7 @@
 
             // Docker Compose Configuration
             const composeConfig = `services:
-  django_app:
+  ${djangoContainer}django_app:
     container_name: ${djangoContainer}
     build: .
     expose:
@@ -128,7 +128,7 @@
       - static_volume:/app/static
       - ./certs:/etc/nginx/ssl  
     depends_on:
-      - django_app
+      - ${djangoContainer}django_app
     restart: always
 
 volumes:
