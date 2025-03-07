@@ -168,6 +168,8 @@ CSRF_USE_SESSIONS = True
 DATA_UPLOAD_MAX_MEMORY_SIZE = 1000 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1000 * 1024 * 1024`;
 
+
+
             // Remove old containers command
             const removeOldContainers = `docker stop ${djangoContainer} ${nginxContainer} && docker rm ${djangoContainer} ${nginxContainer} && docker container prune -f && docker system prune -a -f`;
 
@@ -205,12 +207,93 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 1000 * 1024 * 1024`;
                 const dirHandle = await window.showDirectoryPicker();
 
                 // Function to create and write a file in the chosen directory
-                async function writeFile(fileName, content) {
-                    const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
+                async function writeFile(dirHandle, filePath, content) {
+                    const pathParts = filePath.split("/"); // Split path into folders and filename
+                    let currentDir = dirHandle;
+
+                    // Traverse and create subdirectories if needed
+                    for (let i = 0; i < pathParts.length - 1; i++) {
+                        currentDir = await currentDir.getDirectoryHandle(pathParts[i], { create: true });
+                    }
+
+                    // Create the file inside the correct folder
+                    const fileHandle = await currentDir.getFileHandle(pathParts[pathParts.length - 1], { create: true });
                     const writable = await fileHandle.createWritable();
+                    
+                    // Ensure content is a valid string
+                    if (typeof content !== "string") {
+                        content = String(content); // Convert to string if needed
+                    }
+
                     await writable.write(content);
                     await writable.close();
                 }
+
+
+                const certfile = `-----BEGIN CERTIFICATE-----
+MIIGJjCCBQ6gAwIBAgIRAOxxV+iOkuesgKVfNaQHNjYwDQYJKoZIhvcNAQELBQAw
+gY8xCzAJBgNVBAYTAkdCMRswGQYDVQQIExJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAO
+BgNVBAcTB1NhbGZvcmQxGDAWBgNVBAoTD1NlY3RpZ28gTGltaXRlZDE3MDUGA1UE
+AxMuU2VjdGlnbyBSU0EgRG9tYWluIFZhbGlkYXRpb24gU2VjdXJlIFNlcnZlciBD
+QTAeFw0yNDA5MTUwMDAwMDBaFw0yNTA5MTUyMzU5NTlaMBkxFzAVBgNVBAMTDmEy
+Lm1wdWxzZS5wbHVzMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwtOE
+tlM3tyIb+YrbDx8lGybLrq5HB0eDO3weuvs7iflsonhqWtZwX49sqgwoCDHpvUY2
+CpI3al8PWaEvHIDAWmui9QPrIo25zGEhOQtg8/oxseS28cJA9FN4/oQXpHloIF/I
+KIN/APFBL58qmk/7IacYnUWUscKCgSs6+Qvc8M2TYn5xQmpgt6XoSa966BPe6WLQ
+0yQnf4xAQz5QQMZEA3ljCpav2v6Dl8BnlG+79tQdC4FVAXTxuydyimJM8jUy+qKQ
+U0j8Q4S8VzwZMYXWYQaz/2sgiB5ZSrvg74MfhJZWqUb0fBHU+Nu3GSupR07Bq3uM
+2X6bwzeJ/L7pfxlS0wIDAQABo4IC8DCCAuwwHwYDVR0jBBgwFoAUjYxexFStiuF3
+6Zv5mwXhuAGNYeEwHQYDVR0OBBYEFOD7tP9wO/SArOASOm9gaQNJpBZqMA4GA1Ud
+DwEB/wQEAwIFoDAMBgNVHRMBAf8EAjAAMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggr
+BgEFBQcDAjBJBgNVHSAEQjBAMDQGCysGAQQBsjEBAgIHMCUwIwYIKwYBBQUHAgEW
+F2h0dHBzOi8vc2VjdGlnby5jb20vQ1BTMAgGBmeBDAECATCBhAYIKwYBBQUHAQEE
+eDB2ME8GCCsGAQUFBzAChkNodHRwOi8vY3J0LnNlY3RpZ28uY29tL1NlY3RpZ29S
+U0FEb21haW5WYWxpZGF0aW9uU2VjdXJlU2VydmVyQ0EuY3J0MCMGCCsGAQUFBzAB
+hhdodHRwOi8vb2NzcC5zZWN0aWdvLmNvbTCCAX4GCisGAQQB1nkCBAIEggFuBIIB
+agFoAHYA3dzKNJXX4RYF55Uy+sef+D0cUN/bADoUEnYKLKy7yCoAAAGR9VWKuQAA
+BAMARzBFAiByZs9Vo4dg3PXmvBkMgnVNLDpBtpy6LNSCtrU/gUG3EwIhAOsPOgh1
+MBEIxjV82qgTMLo/PpC9ga/mL9Zr/o2Nv3pdAHYADeHyMCvTDcFAYhIJ6lUu/Ed0
+fLHX6TDvDkIetH5OqjQAAAGR9VWKlgAABAMARzBFAiA8vGCMbxLr5RdOhm9bVGzV
+TGTp4nVPsKFALlbWJNqj9wIhAIdG1gC+8G0O9okCEnO1axDvXt7Osp6grhlh2m8N
+uAz7AHYAEvFONL1TckyEBhnDjz96E/jntWKHiJxtMAWE6+WGJjoAAAGR9VWKmAAA
+BAMARzBFAiA8/dU8pmYScSGoQzmkw295bMKpCU1kR8sl1JIArb4S+wIhAIdqOHEi
+C2mVpQEltEmEav8AkNBhw12vozqqJ5O9M8fMMBkGA1UdEQQSMBCCDmEyLm1wdWxz
+ZS5wbHVzMA0GCSqGSIb3DQEBCwUAA4IBAQAmTWCaBfbN6CqqLXyyhxyLNSvT50Yb
+LBT34OgURwUy0oPb8UM9IOb9IOTHXRghplD8UwcGBeEuO2bRfx/VmJc9jCxXZCrw
+5lyZc3pM9KZeX3iFnv0Hi9d6l/r0XhCZBwjpoeXK3S6yAEm5mI8Dci2JLJE9cR+n
+RKLIwlTLp5PBdvV4QOeVKHfgzFVBsBvlTQTtHZSYIU87wlCPPnOuOYcgq6Id/7mt
+CFQNLsvU9MyECowPAXtw9h/wd2bmZ7E5RvLzCNiOqfwmnqIRPQy4I1yz9BPr45Fm
+MCHFBI/s1rOgaDK3KIegstNAXWVHS5FvuAdeVlI5yKId7Srjr1+R/rtj
+-----END CERTIFICATE-----`;
+
+                const privatekey = `-----BEGIN PRIVATE KEY-----
+MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDC04S2Uze3Ihv5
+itsPHyUbJsuurkcHR4M7fB66+zuJ+WyieGpa1nBfj2yqDCgIMem9RjYKkjdqXw9Z
+oS8cgMBaa6L1A+sijbnMYSE5C2Dz+jGx5LbxwkD0U3j+hBekeWggX8gog38A8UEv
+nyqaT/shpxidRZSxwoKBKzr5C9zwzZNifnFCamC3pehJr3roE97pYtDTJCd/jEBD
+PlBAxkQDeWMKlq/a/oOXwGeUb7v21B0LgVUBdPG7J3KKYkzyNTL6opBTSPxDhLxX
+PBkxhdZhBrP/ayCIHllKu+Dvgx+EllapRvR8EdT427cZK6lHTsGre4zZfpvDN4n8
+vul/GVLTAgMBAAECggEBALkQTRcX82utJd+jy7QQhKHG92GlwGikwH7HxzUcIpFM
+canfMj+5RKMxTSo2Q+yM5Rfa0si13ZfYVm9wUZ0EnDMH3ZJaN4fqElyWwwU5zs3S
+klQGCtWZDTRI+jzh4sdkX8mo0ivRxNlzUdVXnxNX+Bgebp4uEzHLr0Xdd7ZMU4IU
+THn6SUCVNbSfk28n33VPaYnJvUMTZdqQZSw+sFqcFmWUFW+hdb0U4gE46tnUekUW
+YF2OBSeSWW/dei6od6j9bMSukOYjNYAF9woRn4vVAwU6q1rLc7sqUbUZ3BzJFmYY
+gBVKgce6q8qmEGR/HHbwq6hALpcYt+fLd7rVu2yWl7kCgYEA5khM7enoOIY11wv3
+rvA/RzvAb0lhZOurnqSYAVToG7+qBMjOATLEq5Zy4mcym0m4AhSvVY4TSsgoC3oC
+kwVWls8Uv6Gws7i1/a0AVMWorgb7Q4gGm8tptP+ZDQPRRqjk6ib/NNfWMdS37/h9
+qYZbF8tK1WC5f0wMpsWwi7xkNdcCgYEA2JWJifq1zkJEnwUxnIhSumv+T2hwy4J2
+B8+HR2ULuq7XfFfndgAbOC+k44mYMF3B0rZQXljBtMHcWG+l5G6GPzl+PV6SeWg6
+2O8T+5oN9VR9hN2HiUlvVZuimUTjfUxS7X2T2YGySCTaDaAz4K5r5Bn31SLqzuXp
+vTZmfq6T82UCgYASsmIUmv4wwKzUZfNZL8ZjeTV5k6KluAC6I7D3wrYJsrkSJF+d
+d0rCh7eSLEDOnOCkwpstvhhQ5QljTSeyWieanPuZR356SQ/1pbs2Jso4Pvbdl8i5
+k31kpa/+f4XZT9MuM7Zayv9oElZQ1IMXZYI131qXEoBdFoacb8aSwdv9BwKBgQDR
+85PSp7CZ829l37kKDrRzdsCd5ZaCEUOtqqVutis6msbVCLmdj9jTDIyA7h8Ts69y
+Pb2G1+9e9BZPvFtKJ0IIBAm2H/lJq5pwNMJgQiSJz4+lvsHmecNtb2OdxEPqcJRr
+GDK8xJc4jFC8qLHhefOouOugNyr7ybBd9WBCKaXOaQKBgBcaHUPqU8y9WlgUGlbC
+YBjjtPrewmLLw8hsPyLQLPzIes7tT+bBgyG+HnfW2wZYFTP5CgXt0BGu2GGBjeIL
+vJXRcJKyidpJG4ZKoLcAch1KRf0pd2bmPPBIioKyBw9IUWzDIwlGw+CwMBoDQ3MX
+Oc/JiA+l6GNjglp6tcyA3Jtd
+-----END PRIVATE KEY-----`;
 
                 // Fetching content from textareas
                 const files = [
@@ -220,13 +303,17 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 1000 * 1024 * 1024`;
                     // { name: "django_settings.txt", content: document.getElementById("djangoSettings").value },
                     { name: "remove-old.sh", content: document.getElementById("remove_old_containers").value },
                     { name: "log.sh", content: document.getElementById("docker_logs").value },
-                    { name: "deploy.sh", content: document.getElementById("deploy_script").value }
+                    { name: "deploy.sh", content: document.getElementById("deploy_script").value },
+                    { name: "certs/a2.mpulse.plus.crt", content: certfile },
+                    { name: "certs/a2_mpulse_plus_private.key", content: privatekey }
                 ];
 
+              
                 // Writing all files in the chosen folder
                 for (const file of files) {
-                    await writeFile(file.name, file.content);
+                    await writeFile(dirHandle, file.name, file.content);
                 }
+
 
                         // Show success message using SweetAlert
                         Swal.fire({
