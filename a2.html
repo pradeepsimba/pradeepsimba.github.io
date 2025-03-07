@@ -117,7 +117,7 @@
       - static_volume:/app/static
     restart: always
 
-  nginx:
+  ${nginxContainer}:
     container_name: ${nginxContainer}
     image: nginx:latest
     ports:
