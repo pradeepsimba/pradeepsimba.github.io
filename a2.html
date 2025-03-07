@@ -61,7 +61,7 @@
             const nginxContainer = djangoContainer + "_nginx";  // Append "_nginx" to the Django container name
             
                 // Deploy Script
-            const deployScript = `sudo apt update && sudo apt upgrade && sudo snap refresh && git pull && docker-compose build && docker-compose up -d --no-recreate`;
+            const deployScript = `sudo apt update && sudo apt upgrade && sudo snap refresh && git pull && docker-compose up -d --build --no-deps && docker-compose up -d --no-recreate`;
 
         // Set the output values
            document.getElementById('deploy_script').value = deployScript;
