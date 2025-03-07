@@ -136,7 +136,6 @@ volumes:
 
             // Dockerfile
             const dockerfileConfig = `# Use the official Python image
-# Use the official Python image
 FROM a2-env:latest
 
 # Set the working directory in the container
@@ -167,7 +166,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 1000 * 1024 * 1024`;
 
 
             // Remove old containers command
-            const removeOldContainers = `docker stop ${djangoContainer} ${nginxContainer} && docker rm ${djangoContainer} ${nginxContainer}`;
+            const removeOldContainers = `docker stop ${djangoContainer} ${nginxContainer} && docker rm ${djangoContainer} ${nginxContainer} && docker container prune -f && docker system prune -a -f`;
 
             // Follow Docker logs command
             const dockerLogsCommand = `docker logs -f ${djangoContainer}`;
