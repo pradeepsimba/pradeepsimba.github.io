@@ -23,7 +23,7 @@
         
         <div class="mb-3">
             <label for="djangoContainer" class="form-label">Enter Django Container Name:</label>
-            <input type="text" id="djangoContainer" class="form-control" value="stp_dp_2.0">
+            <input type="text" id="djangoContainer" class="form-control" value="sample" pattern="^[a-zA-Z_]+$" title="Only alphabets and underscores are allowed">
         </div>
         
         <button class="btn btn-primary w-100 mb-3" onclick="generateConfig()">Generate Config</button>
