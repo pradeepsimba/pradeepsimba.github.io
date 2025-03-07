@@ -112,13 +112,9 @@
       - "${port2}"
     environment:
       - DJANGO_ALLOWED_HOSTS=a2.mpulse.plus
-    # this for storing secrete keys 
-    # env_file: 
-    #   - /home/ubuntu/.menv
     volumes:
       - .:/app
       - static_volume:/app/static
-      - /home/ubuntu/menv:/home/ubuntu/menv
     restart: always
 
   ${nginxContainer}:
@@ -140,7 +136,7 @@ volumes:
 
             // Dockerfile
             const dockerfileConfig = `# Use the official Python image
-FROM python:latest
+FROM a2-env:latest
 
 # Set the working directory in the container
 WORKDIR /app
