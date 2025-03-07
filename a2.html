@@ -135,8 +135,8 @@ volumes:
   static_volume:`;
 
             // Dockerfile
-            const dockerfileConfig = `# Use the official Python image
-FROM a2-env:latest
+            const dockerfileConfig = `
+FROM ghcr.io/pradeepsimba/a2-env:latest
 
 # Set the working directory in the container
 WORKDIR /app
