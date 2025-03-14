@@ -174,7 +174,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 1000 * 1024 * 1024`;
 
 
             // Remove old containers command
-            const removeOldContainers = `docker stop ${djangoContainer} ${nginxContainer} && docker rm ${djangoContainer} ${nginxContainer} && docker container prune -f && docker system prune -a -f`;
+            const removeOldContainers = `docker stop ${djangoContainer} ${nginxContainer} && docker rm ${djangoContainer} ${nginxContainer} && docker container prune -f && docker system prune -a -f && docker-compose -p ${djangoContainer} down -v`;
 
             // Follow Docker logs command
             const dockerLogsCommand = `docker logs -f ${djangoContainer}`;
