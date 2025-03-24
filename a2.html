@@ -58,6 +58,9 @@
 
         <h3 class="mt-4">deploy.sh</h3>
         <textarea id="deploy_script" class="form-control" rows="3" readonly></textarea>
+
+        <h3 class="mt-4">browsefiles.sh</h3>
+        <textarea id="browsefiles" class="form-control" rows="3" readonly></textarea>
         
     </div>
 
@@ -123,6 +126,7 @@
     volumes:
       - .:/app
       - static_volume:/app/static
+      - /home/ubuntu/dotenv/a2/.env:/app/amazon/.env  # Bind mount the .env file
     restart: always
 
   ${nginxContainer}:
@@ -171,7 +175,7 @@ CSRF_USE_SESSIONS = True
 DATA_UPLOAD_MAX_MEMORY_SIZE = 1000 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1000 * 1024 * 1024`;
 
-
+            const browserfiles = `docker exec -it ${djangoContainer} bash`
 
             // Remove old containers command
             const removeOldContainers = `docker stop ${djangoContainer} ${nginxContainer} && docker rm ${djangoContainer} ${nginxContainer} && docker container prune -f && docker system prune -a -f && docker-compose -p ${djangoContainer} down -v`;
@@ -186,7 +190,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 1000 * 1024 * 1024`;
             document.getElementById('djangoSettings').value = djangoSettings;
             document.getElementById('remove_old_containers').value = removeOldContainers;
             document.getElementById('docker_logs').value = dockerLogsCommand;
-
+            document.getElementById('browsefiles').value = browserfiles;
             document.getElementById('downloadBtn').style.display = "block";
         }
     </script>
@@ -307,6 +311,7 @@ Oc/JiA+l6GNjglp6tcyA3Jtd
                     { name: "remove-old.sh", content: document.getElementById("remove_old_containers").value },
                     { name: "log.sh", content: document.getElementById("docker_logs").value },
                     { name: "deploy.sh", content: document.getElementById("deploy_script").value },
+                    { name: "browsefiles.sh", content: document.getElementById("browsefiles").value },
                     { name: "certs/a2.mpulse.plus.crt", content: certfile },
                     { name: "certs/a2_mpulse_plus_private.key", content: privatekey }
                 ];
