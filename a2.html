@@ -165,7 +165,7 @@ EXPOSE ${port2}
 CMD ["gunicorn", "--bind", "0.0.0.0:${port2}", "amazon.wsgi:application"]`;
 
             // Django Settings Configuration
-            const djangoSettings = `CSRF_TRUSTED_ORIGINS = ["https://a2.mpulse.plus:${port1}"]
+            const djangoSettings = `CSRF_TRUSTED_ORIGINS = ['https://a2.mpulse.plus:${port1}']
 ALLOWED_HOSTS = ['a2.mpulse.plus', 'localhost']
 
 CSRF_COOKIE_SECURE = True
