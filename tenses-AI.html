@@ -1,573 +1,340 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="12.png" type="image/icon type">
-  <title>Modern English Tenses UI with Animations</title>
-
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-
-  <!-- AOS (Animate On Scroll) CSS -->
-  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-
-  <style>
-    /* Optional custom styles */
-    body {
-        background-color: #f8f9fa; /* Light background for contrast */
-    }
-    .card-header {
-        background-color: rgba(220, 53, 69, 0.1); /* Lighter red background for header */
-    }
-    .table th {
-      vertical-align: middle;
-    }
-    .table td {
-      vertical-align: middle;
-    }
-    /* Highlight key parts in formulas */
-    .formula-key {
-        font-weight: bold;
-        color: #0d6efd; /* Bootstrap primary blue */
-    }
-    .example-verb {
-        font-style: italic;
-        color: #198754; /* Bootstrap success green */
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>English Tenses</title>
+    <link rel="icon" href="12.png" type="image/png" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            padding-top: 5rem; /* Adjust for fixed navbar height */
+            background-color: var(--bs-body-bg);
+            transition: background-color 0.3s ease;
+            color: var(--bs-body-color);
+        }
+        .spinner-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 70vh;
+        }
+        .card {
+            border: 1px solid var(--bs-border-color);
+            border-radius: 0.75rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-0.25rem);
+            box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.1);
+        }
+        .card-title {
+            color: var(--bs-primary);
+            margin-bottom: 1rem;
+        }
+        h2 {
+            color: var(--bs-heading-color);
+            margin-bottom: 1.5rem;
+        }
+        section {
+            padding-top: 3rem;
+            padding-bottom: 3rem;
+            display: none; /* Initially hide all sections */
+        }
+        section.active {
+            display: block; /* Show the active section */
+        }
+    </style>
 </head>
 <body>
 
-  <div class="container mt-4 mb-5">
-    <h1 class="mb-5 text-center text-danger fw-bold">English Tenses Overview</h1>
-
-    <!-- Simple Present Tense -->
-    <div class="card mb-4 shadow-sm" data-aos="fade-up">
-      <div class="card-header">
-        <h2 class="text-danger h4 mb-0">Simple Present Tense</h2>
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-striped table-bordered table-hover mb-0">
-            <thead class="table-light">
-              <tr>
-                <th style="width: 20%;">Sentence Type</th>
-                <th style="width: 50%;">Formula</th>
-                <th style="width: 30%;">Example</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Affirmative</strong></td>
-                <td>I / you / we / they + <span class="formula-key">main verb</span> (base form)<br>He / she / it + <span class="formula-key">main verb + s/es</span></td>
-                <td>I <span class="example-verb">play</span> tennis.<br>She <span class="example-verb">plays</span> tennis.</td>
-              </tr>
-              <tr>
-                <td><strong>Negative</strong></td>
-                <td>I / you / we / they + <span class="formula-key">do not (don't)</span> + main verb (base form)<br>He / she / it + <span class="formula-key">does not (doesn't)</span> + main verb (base form)</td>
-                <td>I do not <span class="example-verb">play</span> tennis.<br>He doesn't <span class="example-verb">play</span> tennis.</td>
-              </tr>
-              <tr>
-                <td><strong>Interrogative</strong></td>
-                <td><span class="formula-key">Do</span> + I / you / we / they + main verb (base form)?<br><span class="formula-key">Does</span> + he / she / it + main verb (base form)?</td>
-                <td>Do you <span class="example-verb">play</span> tennis?<br>Does she <span class="example-verb">play</span> tennis?</td>
-              </tr>
-              <tr>
-                <td><strong>Negative-Interrogative</strong></td>
-                <td><span class="formula-key">Do</span> + I / you / we / they + <span class="formula-key">not</span> + main verb (base form)? (or Don't + ...)<br><span class="formula-key">Does</span> + he / she / it + <span class="formula-key">not</span> + main verb (base form)? (or Doesn't + ...)</td>
-                <td>Don't you <span class="example-verb">play</span> tennis?<br>Doesn't he <span class="example-verb">play</span> tennis?</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Present Continuous Tense -->
-    <div class="card mb-4 shadow-sm" data-aos="fade-up">
-        <div class="card-header">
-            <h2 class="text-danger h4 mb-0">Present Continuous Tense</h2>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover mb-0">
-                    <thead class="table-light">
-                      <tr>
-                        <th style="width: 20%;">Sentence Type</th>
-                        <th style="width: 50%;">Formula</th>
-                        <th style="width: 30%;">Example</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td><strong>Affirmative</strong></td>
-                        <td>I + <span class="formula-key">am</span> + main verb + <span class="formula-key">ing</span><br>
-                            He / She / It + <span class="formula-key">is</span> + main verb + <span class="formula-key">ing</span><br>
-                            You / We / They + <span class="formula-key">are</span> + main verb + <span class="formula-key">ing</span></td>
-                        <td>I am <span class="example-verb">playing</span> tennis.<br>She is <span class="example-verb">playing</span> tennis.<br>They are <span class="example-verb">playing</span> tennis.</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Negative</strong></td>
-                        <td>I + <span class="formula-key">am not</span> + main verb + <span class="formula-key">ing</span><br>
-                            He / She / It + <span class="formula-key">is not (isn't)</span> + main verb + <span class="formula-key">ing</span><br>
-                            You / We / They + <span class="formula-key">are not (aren't)</span> + main verb + <span class="formula-key">ing</span></td>
-                        <td>I am not <span class="example-verb">playing</span> tennis.<br>He isn't <span class="example-verb">playing</span> tennis.<br>They aren't <span class="example-verb">playing</span> tennis.</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Interrogative</strong></td>
-                        <td><span class="formula-key">Am</span> + I + main verb + <span class="formula-key">ing</span>?<br>
-                            <span class="formula-key">Is</span> + He / She / It + main verb + <span class="formula-key">ing</span>?<br>
-                            <span class="formula-key">Are</span> + You / We / They + main verb + <span class="formula-key">ing</span>?</td>
-                        <td>Am I <span class="example-verb">playing</span> tennis?<br>Is she <span class="example-verb">playing</span> tennis?<br>Are you <span class="example-verb">playing</span> tennis?</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Negative-Interrogative</strong></td>
-                        <td><span class="formula-key">Am</span> + I + <span class="formula-key">not</span> + main verb + <span class="formula-key">ing</span>?<br>
-                            <span class="formula-key">Is</span> + He / She / It + <span class="formula-key">not</span> + main verb + <span class="formula-key">ing</span>? (or Isn't + ...)<br>
-                            <span class="formula-key">Are</span> + You / We / They + <span class="formula-key">not</span> + main verb + <span class="formula-key">ing</span>? (or Aren't + ...)</td>
-                        <td>Am I not <span class="example-verb">playing</span> tennis?<br>Isn't he <span class="example-verb">playing</span> tennis?<br>Aren't they <span class="example-verb">playing</span> tennis?</td>
-                      </tr>
-                    </tbody>
-                  </table>
+<nav class="navbar fixed-top navbar-expand-lg bg-body-tertiary border-bottom shadow-sm">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-semibold text-primary" href="#">
+            <i class="bi bi-book-half me-2"></i> English Tenses
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="#home">
+                        <i class="bi bi-house-door-fill me-1"></i> Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#present-tenses-section">
+                        <i class="bi bi-clock me-1"></i> Present Tenses
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#past-tenses-section">
+                        <i class="bi bi-hourglass-split me-1"></i> Past Tenses
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#future-tenses-section">
+                        <i class="bi bi-calendar-plus-fill me-1"></i> Future Tenses
+                    </a>
+                </li>
+                <!-- <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="practiceDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-pencil-square me-1"></i> Practice
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="practiceDropdown">
+                        <li><a class="dropdown-item" href="#">Quiz Yourself</a></li>
+                        <li><a class="dropdown-item" href="#">Fill in the Blanks</a></li>
+                        <li><a class="dropdown-item" href="#">Sentence Transformation</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">All Tenses Practice</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#about-section">
+                        <i class="bi bi-info-circle-fill me-1"></i> About
+                    </a>
+                </li> -->
+            </ul>
+            <div class="form-check form-switch ms-lg-auto">
+                <input class="form-check-input" type="checkbox" role="switch" id="themeToggle" />
+                <label class="form-check-label" for="themeToggle">
+                    <i class="bi bi-sun-fill text-warning me-1"></i><span class="theme-text">Light</span> / <i class="bi bi-moon-stars-fill text-secondary ms-1"></i><span class="theme-text">Dark</span>
+                </label>
             </div>
         </div>
     </div>
+</nav>
 
-    <!-- Present Perfect Tense -->
-    <div class="card mb-4 shadow-sm" data-aos="fade-up">
-        <div class="card-header">
-            <h2 class="text-danger h4 mb-0">Present Perfect Tense</h2>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 20%;">Sentence Type</th>
-                            <th style="width: 50%;">Formula</th>
-                            <th style="width: 30%;">Example</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Affirmative</strong></td>
-                            <td>I / you / we / they + <span class="formula-key">have</span> + past participle<br>He / she / it + <span class="formula-key">has</span> + past participle</td>
-                            <td>I have <span class="example-verb">played</span> tennis.<br>She has <span class="example-verb">played</span> tennis.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Negative</strong></td>
-                            <td>I / you / we / they + <span class="formula-key">have not (haven't)</span> + past participle<br>He / she / it + <span class="formula-key">has not (hasn't)</span> + past participle</td>
-                            <td>I haven't <span class="example-verb">played</span> tennis.<br>He hasn't <span class="example-verb">played</span> tennis.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Interrogative</strong></td>
-                            <td><span class="formula-key">Have</span> + I / you / we / they + past participle?<br><span class="formula-key">Has</span> + he / she / it + past participle?</td>
-                            <td>Have you <span class="example-verb">played</span> tennis?<br>Has she <span class="example-verb">played</span> tennis?</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Negative-Interrogative</strong></td>
-                            <td><span class="formula-key">Have</span> + I / you / we / they + <span class="formula-key">not</span> + past participle? (or Haven't + ...)<br><span class="formula-key">Has</span> + he / she / it + <span class="formula-key">not</span> + past participle? (or Hasn't + ...)</td>
-                            <td>Haven't you <span class="example-verb">played</span> tennis?<br>Hasn't he <span class="example-verb">played</span> tennis?</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<section id="spinner" class="spinner-wrapper">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
     </div>
+</section>
 
-    <!-- Present Perfect Continuous Tense -->
-    <div class="card mb-4 shadow-sm" data-aos="fade-up">
-        <div class="card-header">
-            <h2 class="text-danger h4 mb-0">Present Perfect Continuous Tense</h2>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 20%;">Sentence Type</th>
-                            <th style="width: 50%;">Formula</th>
-                            <th style="width: 30%;">Example</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Affirmative</strong></td>
-                            <td>I / you / we / they + <span class="formula-key">have been</span> + main verb + <span class="formula-key">ing</span><br>He / she / it + <span class="formula-key">has been</span> + main verb + <span class="formula-key">ing</span></td>
-                            <td>I have been <span class="example-verb">playing</span> tennis.<br>She has been <span class="example-verb">playing</span> tennis.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Negative</strong></td>
-                            <td>I / you / we / they + <span class="formula-key">have not been (haven't been)</span> + main verb + <span class="formula-key">ing</span><br>He / she / it + <span class="formula-key">has not been (hasn't been)</span> + main verb + <span class="formula-key">ing</span></td>
-                            <td>I haven't been <span class="example-verb">playing</span> tennis.<br>He hasn't been <span class="example-verb">playing</span> tennis.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Interrogative</strong></td>
-                            <td><span class="formula-key">Have</span> + I / you / we / they + <span class="formula-key">been</span> + main verb + <span class="formula-key">ing</span>?<br><span class="formula-key">Has</span> + he / she / it + <span class="formula-key">been</span> + main verb + <span class="formula-key">ing</span>?</td>
-                            <td>Have you been <span class="example-verb">playing</span> tennis?<br>Has she been <span class="example-verb">playing</span> tennis?</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Negative-Interrogative</strong></td>
-                            <td><span class="formula-key">Have</span> + I / you / we / they + <span class="formula-key">not been</span> + main verb + <span class="formula-key">ing</span>? (or Haven't + ... + been)<br><span class="formula-key">Has</span> + he / she / it + <span class="formula-key">not been</span> + main verb + <span class="formula-key">ing</span>? (or Hasn't + ... + been)</td>
-                            <td>Haven't you been <span class="example-verb">playing</span> tennis?<br>Hasn't he been <span class="example-verb">playing</span> tennis?</td>
-                        </tr>
-                    </tbody>
-                </table>
+<main class="container py-5">
+    <section id="home" class="active">
+        <h2>Welcome to English Tenses!</h2>
+        <p>Give me sentences in Tamil to translate into English.</p>
+    </section>
+
+    <section id="present-tenses-section">
+        <h2>Present Tenses</h2>
+        <div class="row gy-4" id="present-tenses-container">
             </div>
-        </div>
-    </div>
+    </section>
 
-    <!-- Simple Past Tense -->
-    <div class="card mb-4 shadow-sm" data-aos="fade-up">
-        <div class="card-header">
-            <h2 class="text-danger h4 mb-0">Simple Past Tense</h2>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-              <table class="table table-striped table-bordered table-hover mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th style="width: 20%;">Sentence Type</th>
-                    <th style="width: 50%;">Formula</th>
-                    <th style="width: 30%;">Example</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><strong>Affirmative</strong></td>
-                    <td>Subject + <span class="formula-key">Past Simple form</span> (verb + ed *or* irregular form)</td>
-                    <td>I <span class="example-verb">played</span> tennis.<br>She <span class="example-verb">went</span> home.</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Negative</strong></td>
-                    <td>Subject + <span class="formula-key">did not (didn't)</span> + main verb (base form)</td>
-                    <td>I did not <span class="example-verb">play</span> tennis.<br>He didn't <span class="example-verb">go</span> home.</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Interrogative</strong></td>
-                    <td><span class="formula-key">Did</span> + Subject + main verb (base form)?</td>
-                    <td>Did you <span class="example-verb">play</span> tennis?<br>Did she <span class="example-verb">go</span> home?</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Negative-Interrogative</strong></td>
-                    <td><span class="formula-key">Did</span> + Subject + <span class="formula-key">not</span> + main verb (base form)? (or Didn't + ...)</td>
-                    <td>Didn't you <span class="example-verb">play</span> tennis?<br>Didn't he <span class="example-verb">go</span> home?</td>
-                  </tr>
-                </tbody>
-              </table>
+    <section id="past-tenses-section">
+        <h2>Past Tenses</h2>
+        <div class="row gy-4" id="past-tenses-container">
             </div>
-        </div>
-    </div>
+    </section>
 
-    <!-- Past Continuous Tense -->
-    <div class="card mb-4 shadow-sm" data-aos="fade-up">
-        <div class="card-header">
-            <h2 class="text-danger h4 mb-0">Past Continuous Tense</h2>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-              <table class="table table-striped table-bordered table-hover mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th style="width: 20%;">Sentence Type</th>
-                    <th style="width: 50%;">Formula</th>
-                    <th style="width: 30%;">Example</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><strong>Affirmative</strong></td>
-                    <td>I / He / She / It + <span class="formula-key">was</span> + main verb + <span class="formula-key">ing</span><br>You / We / They + <span class="formula-key">were</span> + main verb + <span class="formula-key">ing</span></td>
-                    <td>I was <span class="example-verb">playing</span> tennis.<br>They were <span class="example-verb">playing</span> tennis.</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Negative</strong></td>
-                    <td>I / He / She / It + <span class="formula-key">was not (wasn't)</span> + main verb + <span class="formula-key">ing</span><br>You / We / They + <span class="formula-key">were not (weren't)</span> + main verb + <span class="formula-key">ing</span></td>
-                    <td>I was not <span class="example-verb">playing</span> tennis.<br>They weren't <span class="example-verb">playing</span> tennis.</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Interrogative</strong></td>
-                    <td><span class="formula-key">Was</span> + I / he / she / it + main verb + <span class="formula-key">ing</span>?<br><span class="formula-key">Were</span> + you / we / they + main verb + <span class="formula-key">ing</span>?</td>
-                    <td>Was he <span class="example-verb">playing</span> tennis?<br>Were they <span class="example-verb">playing</span> tennis?</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Negative-Interrogative</strong></td>
-                    <td><span class="formula-key">Was</span> + I / he / she / it + <span class="formula-key">not</span> + main verb + <span class="formula-key">ing</span>? (or Wasn't + ...)<br><span class="formula-key">Were</span> + you / we / they + <span class="formula-key">not</span> + main verb + <span class="formula-key">ing</span>? (or Weren't + ...)</td>
-                    <td>Wasn't he <span class="example-verb">playing</span> tennis?<br>Weren't they <span class="example-verb">playing</span> tennis?</td>
-                  </tr>
-                </tbody>
-              </table>
+    <section id="future-tenses-section">
+        <h2>Future Tenses</h2>
+        <div class="row gy-4" id="future-tenses-container">
             </div>
-        </div>
-    </div>
+    </section>
 
-    <!-- Past Perfect Tense -->
-    <div class="card mb-4 shadow-sm" data-aos="fade-up">
-        <div class="card-header">
-            <h2 class="text-danger h4 mb-0">Past Perfect Tense</h2>
-        </div>
-        <div class="card-body">
-             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 20%;">Sentence Type</th>
-                            <th style="width: 50%;">Formula</th>
-                            <th style="width: 30%;">Example</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Affirmative</strong></td>
-                            <td>Subject + <span class="formula-key">had</span> + past participle</td>
-                            <td>I had <span class="example-verb">played</span> tennis.<br>She had <span class="example-verb">played</span> tennis.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Negative</strong></td>
-                            <td>Subject + <span class="formula-key">had not (hadn't)</span> + past participle</td>
-                            <td>I hadn't <span class="example-verb">played</span> tennis.<br>He hadn't <span class="example-verb">played</span> tennis.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Interrogative</strong></td>
-                            <td><span class="formula-key">Had</span> + Subject + past participle?</td>
-                            <td>Had you <span class="example-verb">played</span> tennis?<br>Had she <span class="example-verb">played</span> tennis?</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Negative-Interrogative</strong></td>
-                            <td><span class="formula-key">Had</span> + Subject + <span class="formula-key">not</span> + past participle? (or Hadn't + ...)</td>
-                            <td>Hadn't you <span class="example-verb">played</span> tennis?<br>Hadn't he <span class="example-verb">played</span> tennis?</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+    <section id="about-section">
+        <h2>About This App</h2>
+        <p>This application is designed to help you learn and understand English tenses. It provides clear explanations, formulas, and examples for each tense. The goal is to make learning grammar intuitive and accessible.</p>
+        <p>Feel free to explore the different tenses and come back for practice exercises (coming soon!).</p>
+    </section>
+</main>
 
-    <!-- Past Perfect Continuous Tense -->
-    <div class="card mb-4 shadow-sm" data-aos="fade-up">
-        <div class="card-header">
-            <h2 class="text-danger h4 mb-0">Past Perfect Continuous Tense</h2>
-        </div>
-        <div class="card-body">
-             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 20%;">Sentence Type</th>
-                            <th style="width: 50%;">Formula</th>
-                            <th style="width: 30%;">Example</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Affirmative</strong></td>
-                            <td>Subject + <span class="formula-key">had been</span> + main verb + <span class="formula-key">ing</span></td>
-                            <td>I had been <span class="example-verb">playing</span> tennis.<br>She had been <span class="example-verb">playing</span> tennis.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Negative</strong></td>
-                            <td>Subject + <span class="formula-key">had not been (hadn't been)</span> + main verb + <span class="formula-key">ing</span></td>
-                            <td>I hadn't been <span class="example-verb">playing</span> tennis.<br>He hadn't been <span class="example-verb">playing</span> tennis.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Interrogative</strong></td>
-                            <td><span class="formula-key">Had</span> + Subject + <span class="formula-key">been</span> + main verb + <span class="formula-key">ing</span>?</td>
-                            <td>Had you been <span class="example-verb">playing</span> tennis?<br>Had she been <span class="example-verb">playing</span> tennis?</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Negative-Interrogative</strong></td>
-                            <td><span class="formula-key">Had</span> + Subject + <span class="formula-key">not been</span> + main verb + <span class="formula-key">ing</span>? (or Hadn't + ... + been)</td>
-                            <td>Hadn't you been <span class="example-verb">playing</span> tennis?<br>Hadn't he been <span class="example-verb">playing</span> tennis?</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
-    <!-- Future Simple Tense -->
-    <div class="card mb-4 shadow-sm" data-aos="fade-up">
-        <div class="card-header">
-            <h2 class="text-danger h4 mb-0">Future Simple Tense</h2>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 20%;">Sentence Type</th>
-                            <th style="width: 50%;">Formula</th>
-                            <th style="width: 30%;">Example</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Affirmative</strong></td>
-                            <td>Subject + <span class="formula-key">will</span> + main verb (base form)</td>
-                            <td>I will <span class="example-verb">play</span> tennis.<br>She will <span class="example-verb">play</span> tennis.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Negative</strong></td>
-                            <td>Subject + <span class="formula-key">will not (won't)</span> + main verb (base form)</td>
-                            <td>I will not <span class="example-verb">play</span> tennis.<br>He won't <span class="example-verb">play</span> tennis.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Interrogative</strong></td>
-                            <td><span class="formula-key">Will</span> + Subject + main verb (base form)?</td>
-                            <td>Will you <span class="example-verb">play</span> tennis?<br>Will she <span class="example-verb">play</span> tennis?</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Negative-Interrogative</strong></td>
-                            <td><span class="formula-key">Will</span> + Subject + <span class="formula-key">not</span> + main verb (base form)? (or Won't + ...)</td>
-                            <td>Won't you <span class="example-verb">play</span> tennis?<br>Won't he <span class="example-verb">play</span> tennis?</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+<script>
+    AOS.init({ duration: 600, once: true, easing: 'ease-in-out' });
 
-    <!-- Future Continuous Tense -->
-    <div class="card mb-4 shadow-sm" data-aos="fade-up">
-        <div class="card-header">
-            <h2 class="text-danger h4 mb-0">Future Continuous Tense</h2>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 20%;">Sentence Type</th>
-                            <th style="width: 50%;">Formula</th>
-                            <th style="width: 30%;">Example</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Affirmative</strong></td>
-                            <td>Subject + <span class="formula-key">will be</span> + main verb + <span class="formula-key">ing</span></td>
-                            <td>I will be <span class="example-verb">playing</span> tennis.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Negative</strong></td>
-                            <td>Subject + <span class="formula-key">will not be (won't be)</span> + main verb + <span class="formula-key">ing</span></td>
-                            <td>I will not be <span class="example-verb">playing</span> tennis.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Interrogative</strong></td>
-                            <td><span class="formula-key">Will</span> + Subject + <span class="formula-key">be</span> + main verb + <span class="formula-key">ing</span>?</td>
-                            <td>Will you be <span class="example-verb">playing</span> tennis?</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Negative-Interrogative</strong></td>
-                            <td><span class="formula-key">Will</span> + Subject + <span class="formula-key">not be</span> + main verb + <span class="formula-key">ing</span>? (or Won't + ... + be)</td>
-                            <td>Won't you be <span class="example-verb">playing</span> tennis?</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+    const themeToggle = document.getElementById("themeToggle");
+    const root = document.documentElement;
+    const themeTextElements = document.querySelectorAll(".theme-text");
+    const savedTheme = localStorage.getItem("preferredTheme") || "light";
+    applyTheme(savedTheme);
 
-    <!-- Future Perfect Tense -->
-    <div class="card mb-4 shadow-sm" data-aos="fade-up">
-        <div class="card-header">
-            <h2 class="text-danger h4 mb-0">Future Perfect Tense</h2>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 20%;">Sentence Type</th>
-                            <th style="width: 50%;">Formula</th>
-                            <th style="width: 30%;">Example</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Affirmative</strong></td>
-                            <td>Subject + <span class="formula-key">will have</span> + past participle</td>
-                            <td>I will have <span class="example-verb">played</span> tennis.<br>She will have <span class="example-verb">played</span> tennis.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Negative</strong></td>
-                            <td>Subject + <span class="formula-key">will not have (won't have)</span> + past participle</td>
-                            <td>I will not have <span class="example-verb">played</span> tennis.<br>He will not have <span class="example-verb">played</span> tennis.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Interrogative</strong></td>
-                            <td><span class="formula-key">Will</span> + Subject + <span class="formula-key">have</span> + past participle?</td>
-                            <td>Will you have <span class="example-verb">played</span> tennis?<br>Will she have <span class="example-verb">played</span> tennis?</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Negative-Interrogative</strong></td>
-                            <td><span class="formula-key">Will</span> + Subject + <span class="formula-key">not have</span> + past participle? (or Won't + ... + have)</td>
-                            <td>Won't you have <span class="example-verb">played</span> tennis?<br>Won't she have <span class="example-verb">played</span> tennis?</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Future Perfect Continuous Tense -->
-    <div class="card mb-4 shadow-sm" data-aos="fade-up">
-        <div class="card-header">
-            <h2 class="text-danger h4 mb-0">Future Perfect Continuous Tense</h2>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 20%;">Sentence Type</th>
-                            <th style="width: 50%;">Formula</th>
-                            <th style="width: 30%;">Example</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Affirmative</strong></td>
-                            <td>Subject + <span class="formula-key">will have been</span> + main verb + <span class="formula-key">ing</span></td>
-                            <td>I will have been <span class="example-verb">playing</span> tennis.<br>She will have been <span class="example-verb">playing</span> tennis.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Negative</strong></td>
-                            <td>Subject + <span class="formula-key">will not have been (won't have been)</span> + main verb + <span class="formula-key">ing</span></td>
-                            <td>I will not have been <span class="example-verb">playing</span> tennis.<br>He will not have been <span class="example-verb">playing</span> tennis.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Interrogative</strong></td>
-                            <td><span class="formula-key">Will</span> + Subject + <span class="formula-key">have been</span> + main verb + <span class="formula-key">ing</span>?</td>
-                            <td>Will you have been <span class="example-verb">playing</span> tennis?<br>Will she have been <span class="example-verb">playing</span> tennis?</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Negative-Interrogative</strong></td>
-                            <td><span class="formula-key">Will</span> + Subject + <span class="formula-key">not have been</span> + main verb + <span class="formula-key">ing</span>? (or Won't + ... + have been)</td>
-                            <td>Won't you have been <span class="example-verb">playing</span> tennis?<br>Won't he have been <span class="example-verb">playing</span> tennis?</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-  </div><!-- /.container -->
-
-  <!-- Bootstrap JS Bundle with Popper -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-
-  <!-- AOS (Animate On Scroll) JS -->
-  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-
-  <!-- Initialize AOS -->
-  <script>
-    AOS.init({
-        duration: 600, // values from 0 to 3000, with step 50ms
-        once: true, // whether animation should happen only once - while scrolling down
+    themeToggle.addEventListener("change", () => {
+        const newTheme = themeToggle.checked ? "dark" : "light";
+        applyTheme(newTheme);
     });
-  </script>
+
+    function applyTheme(theme) {
+        root.setAttribute("data-bs-theme", theme);
+        localStorage.setItem("preferredTheme", theme);
+        themeToggle.checked = theme === "dark";
+        themeTextElements.forEach(el => {
+            el.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+        });
+    }
+
+    const presentContainer = document.getElementById("present-tenses-container");
+    const pastContainer = document.getElementById("past-tenses-container");
+    const futureContainer = document.getElementById("future-tenses-container");
+    const spinnerSection = document.getElementById("spinner");
+    const mainContent = document.querySelector("main");
+    const allSections = mainContent.querySelectorAll("section");
+    const navLinks = document.querySelectorAll(".navbar-nav .nav-link");
+
+    // Function to hide all sections
+    function hideAllSections() {
+        allSections.forEach(section => {
+            section.classList.remove("active");
+        });
+        navLinks.forEach(link => {
+            link.classList.remove("active");
+            link.removeAttribute("aria-current");
+        });
+    }
+
+    // Function to show a specific section
+    function showSection(id) {
+        const sectionToShow = document.getElementById(id);
+        const correspondingNavLink = document.querySelector(`.navbar-nav .nav-link[href="#${id}"]`);
+
+        if (sectionToShow) {
+            hideAllSections();
+            sectionToShow.classList.add("active");
+            if (correspondingNavLink) {
+                correspondingNavLink.classList.add("active");
+                correspondingNavLink.setAttribute("aria-current", "page");
+            }
+        }
+    }
+
+    // Event listeners for navigation links
+    navLinks.forEach(link => {
+        link.addEventListener("click", function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute("href").substring(1); // Remove the '#'
+            showSection(targetId);
+        });
+    });
+
+    // Show the Home section initially
+    showSection("home");
+
+    fetch("https://raw.githubusercontent.com/pradeepsimba/files/refs/heads/main/egdata/tenses.json")
+    .then(res => res.json())
+    .then(data => {
+        spinnerSection?.remove();
+
+        data.tenses.forEach((tense) => {
+            const col = document.createElement("div");
+            col.className = "col-12 col-md-6 col-lg-4";
+            col.setAttribute("data-aos", "fade-up");
+
+            const idBase = tense.name.toLowerCase().replace(/\s+/g, "-");
+
+            const navTabs = document.createElement("ul");
+            navTabs.className = "nav nav-tabs mb-3";
+            navTabs.id = `${idBase}-tabs`;
+            navTabs.setAttribute("role", "tablist");
+
+            const tabContent = document.createElement("div");
+            tabContent.className = "tab-content";
+            tabContent.id = `${idBase}-tab-content`;
+
+            tense.types.forEach((type, index) => {
+                const typeId = `${idBase}-${type.sentenceType.toLowerCase().replace(/\s+/g, "-")}`;
+
+                // Tab nav button
+                const navItem = document.createElement("li");
+                navItem.className = "nav-item";
+                navItem.setAttribute("role", "presentation");
+
+                const button = document.createElement("button");
+                button.className = `nav-link${index === 0 ? " active" : ""}`;
+                button.id = `${typeId}-tab`;
+                button.setAttribute("data-bs-toggle", "tab");
+                button.setAttribute("data-bs-target", `#${typeId}`);
+                button.setAttribute("type", "button");
+                button.setAttribute("role", "tab");
+                button.setAttribute("aria-controls", typeId);
+                button.setAttribute("aria-selected", index === 0 ? "true" : "false");
+                button.textContent = type.sentenceType;
+
+                navItem.appendChild(button);
+                navTabs.appendChild(navItem);
+
+                // Tab content pane
+                const tabPane = document.createElement("div");
+                tabPane.className = `tab-pane fade${index === 0 ? " show active" : ""}`;
+                tabPane.id = typeId;
+                tabPane.setAttribute("role", "tabpanel");
+                tabPane.setAttribute("aria-labelledby", `${typeId}-tab`);
+
+                // Formula
+                const formulaP = document.createElement("p");
+                formulaP.className = "mb-1";
+                formulaP.innerHTML = `<span class="fw-bold">Formula:</span> <code class="text-primary">${type.formula}</code>`;
+
+                // Example
+                const exampleP = document.createElement("p");
+                exampleP.className = "mb-2";
+                exampleP.innerHTML = `<span class="fw-bold">Example:</span> <span class="text-success fst-italic">${type.example}</span>`;
+
+                // Practice (string or array joined into string)
+                const practiceText = Array.isArray(type.practice_with)
+                    ? type.practice_with.join(", ")
+                    : type.practice_with;
+
+                const practiceP = document.createElement("p");
+                practiceP.className = "mb-2";
+                practiceP.innerHTML = `<span class="fw-bold">Practice:</span> <span class="text-success fst-italic">${practiceText}</span>`;
+
+                tabPane.appendChild(formulaP);
+                tabPane.appendChild(exampleP);
+                tabPane.appendChild(practiceP);
+
+                tabContent.appendChild(tabPane);
+            });
+
+            const card = document.createElement("div");
+            card.className = "card h-100";
+
+            const cardBody = document.createElement("div");
+            cardBody.className = "card-body";
+
+            const cardTitle = document.createElement("h5");
+            cardTitle.className = "card-title fw-semibold";
+            cardTitle.textContent = tense.name;
+
+            cardBody.appendChild(cardTitle);
+            cardBody.appendChild(navTabs);
+            cardBody.appendChild(tabContent);
+            card.appendChild(cardBody);
+            col.appendChild(card);
+
+            // Append to appropriate section
+            if (tense.name.toLowerCase().includes("present")) {
+                presentContainer.appendChild(col);
+            } else if (tense.name.toLowerCase().includes("past")) {
+                pastContainer.appendChild(col);
+            } else if (tense.name.toLowerCase().includes("future")) {
+                futureContainer.appendChild(col);
+            }
+        });
+
+        // Initialize Bootstrap tabs
+        const tabElms = document.querySelectorAll('.nav-tabs .nav-link');
+        tabElms.forEach(tabEl => {
+            new bootstrap.Tab(tabEl);
+        });
+    })
+    .catch(err => {
+        console.error("Failed to load tenses:", err);
+        if (spinnerSection) {
+            spinnerSection.innerHTML = `<div class="alert alert-danger" role="alert">Failed to load data. Please try again later. Error: ${err.message}</div>`;
+        }
+    });
+
+
+</script>
+
 </body>
 </html>
