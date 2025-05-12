@@ -131,15 +131,28 @@
         canvas.addEventListener('touchcancel', stopDrawing);
         canvas.addEventListener('touchmove', draw, { passive: false });
 
+
+        function handleFullscreenChange() {
+            if (document.fullscreenElement) {
+                maximizeButton.style.display = 'none'; // Hide the button
+            } else {
+                maximizeButton.textContent = 'Fullscreen';
+                maximizeButton.style.display = 'block'; // Show the button
+            }
+        }
+
         maximizeButton.addEventListener('click', () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
-                maximizeButton.style.display = 'none';
             } else {
                 document.exitFullscreen();
-                maximizeButton.style.display = 'block';
             }
         });
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange); /* For Safari */
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);    /* For Firefox */
+        document.addEventListener('msfullscreenchange', handleFullscreenChange);     /* For IE/Edge */
 
         clearButton.addEventListener('click', () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
