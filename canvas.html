@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="12.png" type="image/icon type">	
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fullscreen Drawing Canvas</title>
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden; /* Prevent scrollbars */
+            background-color: #121212; /* Dark background for modern look */
+            color: #f0f0f0; /* Light text color */
+        }
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            z-index: 10; /* Ensure controls are above the canvas */
+        }
+        button {
+            padding: 12px 20px;
+            background: #37474f; /* Darker button background */
+            color: #e0e0e0;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background: #546e7a; /* Slightly lighter on hover */
+        }
+        button#clearButton {
+            background: #d32f2f; /* Distinct color for clear */
+        }
+        button#clearButton:hover {
+            background: #f44336;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            background-color: #121212; /* Match body background */
+            touch-action: none; /* Prevent scrolling while drawing */
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button id="maximizeButton">Fullscreen</button>
+        <button id="clearButton">C</button>
+    </div>
+    <canvas id="drawingCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        const maximizeButton = document.getElementById('maximizeButton');
+        const clearButton = document.getElementById('clearButton');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            // No need to explicitly set background here, it's handled by CSS
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let drawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        function startDrawing(event) {
+            drawing = true;
+            lastX = event.clientX || event.touches[0].clientX;
+            lastY = event.clientY || event.touches[0].clientY;
+        }
+
+        function stopDrawing() {
+            drawing = false;
+        }
+
+        function draw(event) {
+            if (!drawing) return;
+
+            event.preventDefault();
+
+            const x = event.clientX || event.touches[0].clientX;
+            const y = event.clientY || event.touches[0].clientY;
+
+            ctx.lineWidth = 3; /* Slightly thinner line for a cleaner look */
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#bbdefb'; /* A modern light blue color */
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+
+            lastX = x;
+            lastY = y;
+        }
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing); // Stop drawing if mouse leaves canvas
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing); // Handle touch cancel events
+        canvas.addEventListener('touchmove', draw);
+
+        maximizeButton.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                maximizeButton.style.display = 'none';
+            } else {
+                document.exitFullscreen();
+                maximizeButton.textContent = 'Fullscreen';
+                maximizeButton.style.display = 'block';
+            }
+        });
+
+        clearButton.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+    </script>
+</body>
+</html>
