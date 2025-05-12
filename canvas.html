@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" href="12.png" type="image/icon type">	
+    <link rel="icon" href="12.png" type="image/icon type">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fullscreen Drawing Canvas</title>
@@ -11,23 +11,26 @@
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden; /* Prevent scrollbars */
-            background-color: #121212; /* Dark background for modern look */
-            color: #f0f0f0; /* Light text color */
+            overflow: hidden;
+            background-color: #121212;
+            color: #f0f0f0;
         }
+
         .controls {
             position: absolute;
             top: 20px;
             right: 20px;
             display: flex;
             gap: 15px;
-            z-index: 10; /* Ensure controls are above the canvas */
+            z-index: 10;
         }
+
         button {
             padding: 12px 20px;
-            background: #37474f; /* Darker button background */
+            background: #37474f;
             color: #e0e0e0;
             border: none;
             cursor: pointer;
@@ -35,21 +38,25 @@
             border-radius: 8px;
             transition: background-color 0.3s ease;
         }
+
         button:hover {
-            background: #546e7a; /* Slightly lighter on hover */
+            background: #546e7a;
         }
+
         button#clearButton {
-            background: #d32f2f; /* Distinct color for clear */
+            background: #d32f2f;
         }
+
         button#clearButton:hover {
             background: #f44336;
         }
+
         canvas {
             display: block;
             width: 100vw;
             height: 100vh;
-            background-color: #121212; /* Match body background */
-            touch-action: none; /* Prevent scrolling while drawing */
+            background-color: #121212;
+            touch-action: none;
         }
     </style>
 </head>
@@ -59,7 +66,6 @@
         <button id="clearButton">C</button>
     </div>
     <canvas id="drawingCanvas"></canvas>
-
     <script>
         const canvas = document.getElementById('drawingCanvas');
         const ctx = canvas.getContext('2d');
@@ -69,7 +75,6 @@
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            // No need to explicitly set background here, it's handled by CSS
         }
 
         window.addEventListener('resize', resizeCanvas);
@@ -79,10 +84,19 @@
         let lastX = 0;
         let lastY = 0;
 
+        function getCoordinates(event) {
+            return {
+                x: event.clientX || (event.touches && event.touches[0].clientX),
+                y: event.clientY || (event.touches && event.touches[0].clientY)
+            };
+        }
+
         function startDrawing(event) {
+            event.preventDefault();
             drawing = true;
-            lastX = event.clientX || event.touches[0].clientX;
-            lastY = event.clientY || event.touches[0].clientY;
+            const { x, y } = getCoordinates(event);
+            lastX = x;
+            lastY = y;
         }
 
         function stopDrawing() {
@@ -91,15 +105,11 @@
 
         function draw(event) {
             if (!drawing) return;
-
             event.preventDefault();
-
-            const x = event.clientX || event.touches[0].clientX;
-            const y = event.clientY || event.touches[0].clientY;
-
-            ctx.lineWidth = 3; /* Slightly thinner line for a cleaner look */
+            const { x, y } = getCoordinates(event);
+            ctx.lineWidth = 3;
             ctx.lineCap = 'round';
-            ctx.strokeStyle = '#bbdefb'; /* A modern light blue color */
+            ctx.strokeStyle = '#bbdefb';
 
             ctx.beginPath();
             ctx.moveTo(lastX, lastY);
@@ -112,12 +122,13 @@
 
         canvas.addEventListener('mousedown', startDrawing);
         canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseout', stopDrawing); // Stop drawing if mouse leaves canvas
+        canvas.addEventListener('mouseout', stopDrawing);
         canvas.addEventListener('mousemove', draw);
+
         canvas.addEventListener('touchstart', startDrawing);
         canvas.addEventListener('touchend', stopDrawing);
-        canvas.addEventListener('touchcancel', stopDrawing); // Handle touch cancel events
-        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchcancel', stopDrawing);
+        canvas.addEventListener('touchmove', draw, { passive: false });
 
         maximizeButton.addEventListener('click', () => {
             if (!document.fullscreenElement) {
@@ -125,7 +136,6 @@
                 maximizeButton.style.display = 'none';
             } else {
                 document.exitFullscreen();
-                maximizeButton.textContent = 'Fullscreen';
                 maximizeButton.style.display = 'block';
             }
         });
