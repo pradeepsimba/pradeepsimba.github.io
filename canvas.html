@@ -3,8 +3,9 @@
 <head>
     <link rel="icon" href="12.png" type="image/icon type">
     <meta charset="UTF-8">
+    <link rel="manifest" href="manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fullscreen Drawing Canvas</title>
+    <title>Canvas</title>
     <style>
         *, *::before, *::after {
             margin: 0;
@@ -144,5 +145,11 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         });
     </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js')
+            .then(() => console.log('✅ Service Worker registered'));
+        }
+  </script>
 </body>
 </html>
