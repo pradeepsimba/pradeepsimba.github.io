@@ -127,6 +127,8 @@
       - .:/app
       - static_volume:/app/static
       - /home/ubuntu/dotenv/a2/.env:/app/amazon/.env  # Bind mount the .env file
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # 👈 Important for accessing host DB
     restart: always
 
   ${nginxContainer}:
