@@ -148,7 +148,8 @@
       container.innerHTML = data.map((book, i) => `
         <div class="glass-card">
           <h5>${i + 1}. ${book.word}</h5>
-          <p class="definition">${book.a}</p>
+          <p class="definition">Tamil meaning : ${book.a}</p>
+          <p class="definition">Explanation : ${book.b}</p>
         </div>
       `).join('');
     }
