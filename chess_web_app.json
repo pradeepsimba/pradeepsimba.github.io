@@ -1,6 +1,6 @@
 {
-  "name": "Canvas App",
-  "short_name": "Canvas App",
+  "name": "Chess",
+  "short_name": "Chess",
   "start_url": "./chess.html",
   "display": "standalone",
   "background_color": "#ffffff",
