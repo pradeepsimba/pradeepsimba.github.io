@@ -3,12 +3,12 @@
 <head>
   <link rel="icon" href="12.png" type="image/icon type">
   <meta charset="UTF-8">
+  <link rel="manifest" href="manifest.json">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chess Strategies</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <style>
-    /* Base Styles */
     body {
       font-family: 'Poppins', sans-serif;
       margin: 0;
@@ -16,7 +16,7 @@
       background-color: #f5f5f5;
       transition: background-color 0.4s, color 0.4s ease-in-out;
     }
-    
+
     .card {
       margin: 20px;
       padding: 20px;
@@ -73,7 +73,6 @@
       box-shadow: 0 0 8px rgba(0, 123, 255, 0.6);
     }
 
-    /* Light Mode Styles */
     .light-mode {
       background-color: #f8f9fa;
       color: #212529;
@@ -88,7 +87,6 @@
       box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
     }
 
-    /* Dark Mode Styles */
     .dark-mode {
       background-color: #212529;
       color: #f8f9fa;
@@ -116,7 +114,6 @@
       color: white;
     }
 
-    /* Animation for loading the cards */
     .fade-in {
       animation: fadeIn 0.6s ease-in-out;
     }
@@ -130,7 +127,6 @@
       }
     }
 
-    /* Custom Checkbox Styles */
     .bullet-item input[type="checkbox"] {
       width: 25px;
       height: 25px;
@@ -141,18 +137,18 @@
       border-radius: 5px;
       cursor: pointer;
       transition: all 0.3s ease, transform 0.3s ease;
+      position: relative;
     }
 
     .bullet-item input[type="checkbox"]:checked {
-      background-color: #4CAF50; /* Green background */
+      background-color: #4CAF50;
       border-color: #4CAF50;
-      box-shadow: 0 0 5px rgba(76, 175, 80, 0.8); /* Green glow */
-      transform: scale(1.2); /* Checkbox bounce effect */
+      box-shadow: 0 0 5px rgba(76, 175, 80, 0.8);
+      transform: scale(1.2);
     }
 
     .bullet-item input[type="checkbox"]:checked::after {
       content: "";
-      display: block;
       position: absolute;
       left: 7px;
       top: 4px;
@@ -163,7 +159,10 @@
       transform: rotate(45deg);
     }
 
-    /* Mobile responsive */
+    #bullet-list {
+      padding-bottom: 100px;
+    }
+
     @media (max-width: 768px) {
       .card {
         margin: 10px;
@@ -177,18 +176,18 @@
   </style>
 </head>
 <body class="light-mode">
-    <div class="container fade-in">
-        <div class="card shadow">
-          <h4 class="card-title">Chess Strategies</h4>
-          <div class="card-body">
-            <div id="bullet-list">
-              <!-- Dynamically generated tasks will appear here -->
-            </div>
-            <button id="submitBtn" class="btn btn-primary">Next</button>
-            <button id="toggleBtn" class="btn btn-toggle">Switch to Dark Mode</button>
-          </div>
+  <div class="container fade-in">
+    <div class="card shadow">
+      <h4 class="card-title">Chess Strategies</h4>
+      <div class="card-body">
+        <div id="bullet-list">
+          <!-- Dynamically generated tasks will appear here -->
         </div>
+        <button id="submitBtn" class="btn btn-primary">Next</button>
+        <button id="toggleBtn" class="btn btn-toggle">Switch to Dark Mode</button>
       </div>
+    </div>
+  </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -197,57 +196,62 @@
       const toggleBtn = document.getElementById('toggleBtn');
       let currentIndex = 0;
       let tasks = [];
+      let checkboxes = [];
 
       const loadTasks = async () => {
         const savedTheme = localStorage.getItem('theme');
         const body = document.body;
-        if (savedTheme=='dark') {
-            body.classList.add('dark-mode');
-            toggleBtn.textContent = savedTheme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+        if (savedTheme === 'dark') {
+          body.classList.add('dark-mode');
+          toggleBtn.textContent = 'Switch to Light Mode';
         } else {
-            // Default to light mode if no theme is saved
-            body.classList.add('light-mode');
-            toggleBtn.textContent = 'Switch to Dark Mode';
+          body.classList.add('light-mode');
+          toggleBtn.textContent = 'Switch to Dark Mode';
         }
+
         if (tasks.length === 0) {
           const response = await fetch('https://raw.githubusercontent.com/pradeepsimba/files/refs/heads/main/Chess/chess.json');
           const data = await response.json();
-          tasks = data;  // Update tasks from the JSON
+          tasks = data;
           renderTasks();
         }
       };
 
       const renderTasks = () => {
-        checkboxesContainer.innerHTML = ''; // Clear the current list
+        checkboxesContainer.innerHTML = '';
 
         tasks.forEach((task, index) => {
           const bulletItem = document.createElement('div');
           bulletItem.classList.add('bullet-item');
-          
+
           const checkbox = document.createElement('input');
           checkbox.type = 'checkbox';
           checkbox.id = `bullet${index + 1}`;
           checkbox.disabled = true;
-          
+
           const label = document.createElement('label');
           label.setAttribute('for', `bullet${index + 1}`);
           label.textContent = task.task;
-          
+
           bulletItem.appendChild(checkbox);
           bulletItem.appendChild(label);
-          
+
           checkboxesContainer.appendChild(bulletItem);
         });
 
-        // Re-query checkboxes after rendering tasks
         checkboxes = document.querySelectorAll('#bullet-list input[type="checkbox"]');
       };
-
-      let checkboxes = [];  // Initialize checkboxes array
 
       const checkNextBullet = () => {
         if (currentIndex < checkboxes.length) {
           checkboxes[currentIndex].checked = true;
+
+          // Smooth scroll to selected checkbox
+          checkboxes[currentIndex].scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+
           currentIndex++;
         }
       };
@@ -261,15 +265,13 @@
         return [...checkboxes].every(checkbox => checkbox.checked);
       };
 
-      // Handle "Enter" key press to check the next bullet point
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-        if (areAllBulletsChecked()) {
-          
-          clearAllBullets();
-        } else {
-          checkNextBullet();
-        }
+          if (areAllBulletsChecked()) {
+            clearAllBullets();
+          } else {
+            checkNextBullet();
+          }
         }
       });
 
@@ -284,7 +286,7 @@
 
       submitBtn.addEventListener('click', () => {
         if (areAllBulletsChecked()) {
-            clearAllBullets();
+          clearAllBullets();
         } else {
           checkNextBullet();
         }
