@@ -1,6 +1,6 @@
 {
-  "name": "English",
-  "short_name": "English",
+  "name": "English Clone App",
+  "short_name": "English Clone App",
   "start_url": "./engapp.html",
   "display": "standalone",
   "background_color": "#666666",
