@@ -1,0 +1,20 @@
+{
+  "name": "English",
+  "short_name": "English",
+  "start_url": "./engapp.html",
+  "display": "standalone",
+  "background_color": "#666666",
+  "theme_color": "#666666",
+  "icons": [
+    {
+      "src": "12.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "12.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
