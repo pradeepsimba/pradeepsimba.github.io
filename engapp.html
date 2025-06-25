@@ -1,180 +1,206 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-  <meta charset=utf-8>
-  <link rel="icon" href="12.png" type="image/icon type">
+  <meta charset="UTF-8">
+  <link rel="icon" href="12.png" type="image/png">
   <link rel="manifest" href="engapp.json">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>egapp</title>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
-  <style>
 
-    input[type=text], select {
-      padding: 12px 20px;
-      margin: 8px 0;
-      display: inline-block;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #e0e5ec;
+      --fg: #333;
+      --primary: #4CAF50;
+      --shadow-light: #ffffff;
+      --shadow-dark: #a3b1c6;
     }
 
-    .above {
-              position: fixed;
-              top : 0px;
-              /* display: inline-block; */
-              border-radius: 4px;
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+    }
 
-              border: none;
-              color: #FFFFFF;
-              text-align: center;
-              font-size: 28px;
-              padding: 5px;
-              width: 100px;
-              transition: all 0.5s;
-              cursor: pointer;
-              margin: 5px;              
-            }
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--fg);
+    }
 
+    .control-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 10px;
+      background: rgba(255, 255, 255, 0.35);
+      backdrop-filter: blur(15px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      z-index: 100;
+    }
 
-
+    input[type="text"] {
+      border: none;
+      padding: 10px 18px;
+      font-size: 18px;
+      width: 70px;
+      margin: 0 8px;
+      border-radius: 12px;
+      background: var(--bg);
+      box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+      text-align: center;
+    }
 
     button {
-      background-color: #4CAF50; /* Green */
-      border: none;
+      background: var(--primary);
       color: white;
-      padding: 15px 32px;
-      text-align: center;
-      text-decoration: none;
-      display: inline-block;
+      border: none;
+      border-radius: 30px;
+      padding: 10px 24px;
+      margin: 4px;
       font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+      transition: transform 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #45a049;
+      transform: scale(1.05);
+    }
+
+    #fullscreen {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background-color: #222;
+      padding: 4px;
+      cursor: pointer;
+      margin-right: 8px;
+    }
+
+    #soundtrack {
+      margin-top: 90px;
+      text-align: center;
+      padding: 10px;
+    }
+
+    #soundtrack img {
+      max-width: 100%;
+      /* max-height: 75vh; */
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      transition: transform 0.3s ease;
+    }
+
+    #soundtrack img:hover {
+      transform: scale(1.01);
+    }
+
+    @media (max-width: 600px) {
+      button,
+      input[type="text"] {
+        font-size: 14px;
+        padding: 8px 16px;
+      }
+
+      .control-bar {
+        padding: 10px 5px;
+      }
     }
   </style>
-  <script>
-
-    let count = 0 ;
-  
-    function ct (x) {
-    
-      if(x==1){
-       count++;
-      } else if(x==0) {
-       count --;
-      }
-  
-      setImage();
-  
-    }
-  
-    function setImage () {
-    
-      let WhichImg;
-  
-      if(count<=50){
-        WhichImg = "https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/("+count+").jpg";
-        document.getElementById("myText").value = count;
-     }else if(count>50 && count <=121) {  
-    
-        WhichImg = "https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/%20("+count+").jpg";
-        document.getElementById("myText").value = count;
-   
-     }else if(count>121) {  
-    
-         WhichImg = "https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/("+count+").png";
-         document.getElementById("myText").value = count;
-    
-      }
-  
-  
-  
-    document.getElementById('soundtrack').innerHTML=`<img src='${WhichImg}' alt="image" width=auto height=auto>`;
-  
-    }
-  
-    function myFunction() {
-  
-      count = document.getElementById("myText").value;
-  
-  
-      if(count<=50){
-        WhichImg = "https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/("+count+").jpg";
-        document.getElementById("myText").value = count;
-     }else if(count>50 && count <=121) {  
-    
-        WhichImg = "https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/%20("+count+").jpg";
-        document.getElementById("myText").value = count;
-   
-     }else if(count>121) {  
-    
-         WhichImg = "https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/("+count+").png";
-         document.getElementById("myText").value = count;
-    
-      }
-    
-      document.getElementById('soundtrack').innerHTML=`<img src='${WhichImg}' alt="image" width=auto height=auto>`;
-  
-    }
-  
-  </script>
 </head>
 
 <body onmousemove="onMouseMove()">
 
-  <div class="above" id="buttons" style="
-                            vertical-align: middle;
-                            top: 16px;
-                            left: 16px;
-                            width: 100%;
-                                        ">
-    <input type="image" id="fullscreen" src="fullscreen-on.png"  style="background-color: #000000;
-                                                                        padding: 4px;" onclick="toggleFullscreen()" />
-    <input type="text" id="myText" value="1">  
-    <button onclick="myFunction()">Try it</button>
-    <button onClick="ct(0)">prev</button>
-    <button onClick="ct(1)">next</button>
+  <div class="control-bar" id="buttons">
+    <img id="fullscreen" src="fullscreen-on.png" alt="Fullscreen" onclick="toggleFullscreen()">
+    <input type="text" id="myText" value="1">
+    <button onclick="myFunction()">Go</button>
+    <button onclick="ct(0)">Prev</button>
+    <button onclick="ct(1)">Next</button>
   </div>
 
   <div id="soundtrack"></div>
 
-
-
   <script>
+    let count = 1;
 
+    function ct(dir) {
+      count += (dir === 1) ? 1 : -1;
+      setImage();
+    }
 
-    var enableButtons = true;
-    if (enableButtons) document.getElementById('buttons').style.visibility = 'visible';
-    var buttonsHideFunction = function () { document.getElementById('buttons').style.visibility = 'hidden'; }
-    var hideTimeout = setTimeout(buttonsHideFunction, 10000);
+    function setImage() {
+      const input = document.getElementById("myText");
+      input.value = count;
+
+      let WhichImg;
+      if (count <= 50) {
+        WhichImg = `https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/(${count}).jpg`;
+      } else if (count <= 121) {
+        WhichImg = `https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/ %20(${count}).jpg`;
+      } else {
+        WhichImg = `https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/(${count}).png`;
+      }
+
+      document.getElementById('soundtrack').innerHTML = `<img src="${WhichImg}" alt="Slide ${count}">`;
+    }
+
+    function myFunction() {
+      const inputVal = parseInt(document.getElementById("myText").value, 10);
+      if (!isNaN(inputVal)) count = inputVal;
+      setImage();
+    }
+
+    // Auto-hide control bar after inactivity
+    let hideTimeout;
+    const enableButtons = true;
 
     function onMouseMove() {
-      if (!enableButtons) return
-      document.getElementById('buttons').style.visibility = 'visible';
-      clearTimeout(hideTimeout)
-      hideTimeout = setTimeout(buttonsHideFunction, 10000);
+      if (!enableButtons) return;
+      const bar = document.getElementById('buttons');
+      bar.style.visibility = 'visible';
+      clearTimeout(hideTimeout);
+      hideTimeout = setTimeout(() => {
+        bar.style.visibility = 'hidden';
+      }, 6000);
     }
 
     function isFullscreen() {
-      return document.webkitIsFullScreen || document.mozFullScreen || false;
+      return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
     }
 
     function fullScreenHandler() {
-      var fullscreenInput = document.getElementById("fullscreen");
-      if (isFullscreen()) fullscreenInput.src = "fullscreen-off.png"; else fullscreenInput.src = "fullscreen-on.png";
+      document.getElementById("fullscreen").src = isFullscreen() ? "fullscreen-off.png" : "fullscreen-on.png";
     }
 
-
+    function toggleFullscreen() {
+      const element = document.documentElement;
+      if (isFullscreen()) {
+        document.exitFullscreen?.() || document.webkitCancelFullScreen?.() || document.mozCancelFullScreen?.();
+      } else {
+        element.requestFullscreen?.() || element.webkitRequestFullScreen?.() || element.mozRequestFullScreen?.();
+      }
+    }
 
     document.addEventListener("fullscreenchange", fullScreenHandler);
     document.addEventListener("webkitfullscreenchange", fullScreenHandler);
     document.addEventListener("mozfullscreenchange", fullScreenHandler);
     document.addEventListener("MSFullscreenChange", fullScreenHandler);
 
-    function toggleFullscreen() {
-      var element = document.documentElement;
-      element.requestFullScreen = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || function () { return false; };
-      document.cancelFullScreen = document.cancelFullScreen || document.webkitCancelFullScreen || document.mozCancelFullScreen || function () { return false; };
-      isFullscreen() ? document.cancelFullScreen() : element.requestFullScreen();
-    }
-
-
+    // Init
+    setImage();
   </script>
 </body>
 
