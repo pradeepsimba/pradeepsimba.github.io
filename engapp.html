@@ -134,73 +134,107 @@
   <div id="soundtrack"></div>
 
   <script>
-    let count = 1;
 
-    function ct(dir) {
-      count += (dir === 1) ? 1 : -1;
-      setImage();
-    }
 
-    function setImage() {
-      const input = document.getElementById("myText");
-      input.value = count;
-
-      let WhichImg;
-      if (count <= 50) {
-        WhichImg = `https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/(${count}).jpg`;
-      } else if (count <= 121) {
-        WhichImg = `https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/ %20(${count}).jpg`;
-      } else {
-        WhichImg = `https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/(${count}).png`;
+    let count = 0 ;
+  
+    function ct (x) {
+    
+      if(x==1){
+       count++;
+      } else if(x==0) {
+       count --;
       }
-
-      document.getElementById('soundtrack').innerHTML = `<img src="${WhichImg}" alt="Slide ${count}">`;
-    }
-
-    function myFunction() {
-      const inputVal = parseInt(document.getElementById("myText").value, 10);
-      if (!isNaN(inputVal)) count = inputVal;
+  
       setImage();
+  
+    }
+  
+    function setImage () {
+    
+      let WhichImg;
+  
+      if(count<=50){
+        WhichImg = "https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/("+count+").jpg";
+        document.getElementById("myText").value = count;
+     }else if(count>50 && count <=121) {  
+    
+        WhichImg = "https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/%20("+count+").jpg";
+        document.getElementById("myText").value = count;
+   
+     }else if(count>121) {  
+    
+         WhichImg = "https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/("+count+").png";
+         document.getElementById("myText").value = count;
+    
+      }
+  
+  
+  
+    document.getElementById('soundtrack').innerHTML=`<img src='${WhichImg}' alt="image" width=auto height=auto>`;
+  
+    }
+  
+    function myFunction() {
+  
+      count = document.getElementById("myText").value;
+  
+  
+      if(count<=50){
+        WhichImg = "https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/("+count+").jpg";
+        document.getElementById("myText").value = count;
+     }else if(count>50 && count <=121) {  
+    
+        WhichImg = "https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/%20("+count+").jpg";
+        document.getElementById("myText").value = count;
+   
+     }else if(count>121) {  
+    
+         WhichImg = "https://raw.githubusercontent.com/Jeevasimba/files/main/egapp/("+count+").png";
+         document.getElementById("myText").value = count;
+    
+      }
+    
+      document.getElementById('soundtrack').innerHTML=`<img src='${WhichImg}' alt="image" width=auto height=auto>`;
+  
     }
 
-    // Auto-hide control bar after inactivity
-    let hideTimeout;
-    const enableButtons = true;
+    var enableButtons = true;
+    if (enableButtons) document.getElementById('buttons').style.visibility = 'visible';
+    var buttonsHideFunction = function () { document.getElementById('buttons').style.visibility = 'hidden'; }
+    var hideTimeout = setTimeout(buttonsHideFunction, 10000);
 
     function onMouseMove() {
-      if (!enableButtons) return;
-      const bar = document.getElementById('buttons');
-      bar.style.visibility = 'visible';
-      clearTimeout(hideTimeout);
-      hideTimeout = setTimeout(() => {
-        bar.style.visibility = 'hidden';
-      }, 6000);
+      if (!enableButtons) return
+      document.getElementById('buttons').style.visibility = 'visible';
+      clearTimeout(hideTimeout)
+      hideTimeout = setTimeout(buttonsHideFunction, 10000);
     }
 
     function isFullscreen() {
-      return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+      return document.webkitIsFullScreen || document.mozFullScreen || false;
     }
 
     function fullScreenHandler() {
-      document.getElementById("fullscreen").src = isFullscreen() ? "fullscreen-off.png" : "fullscreen-on.png";
+      var fullscreenInput = document.getElementById("fullscreen");
+      if (isFullscreen()) fullscreenInput.src = "fullscreen-off.png"; else fullscreenInput.src = "fullscreen-on.png";
     }
 
-    function toggleFullscreen() {
-      const element = document.documentElement;
-      if (isFullscreen()) {
-        document.exitFullscreen?.() || document.webkitCancelFullScreen?.() || document.mozCancelFullScreen?.();
-      } else {
-        element.requestFullscreen?.() || element.webkitRequestFullScreen?.() || element.mozRequestFullScreen?.();
-      }
-    }
+
 
     document.addEventListener("fullscreenchange", fullScreenHandler);
     document.addEventListener("webkitfullscreenchange", fullScreenHandler);
     document.addEventListener("mozfullscreenchange", fullScreenHandler);
     document.addEventListener("MSFullscreenChange", fullScreenHandler);
 
-    // Init
-    setImage();
+    function toggleFullscreen() {
+      var element = document.documentElement;
+      element.requestFullScreen = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || function () { return false; };
+      document.cancelFullScreen = document.cancelFullScreen || document.webkitCancelFullScreen || document.mozCancelFullScreen || function () { return false; };
+      isFullscreen() ? document.cancelFullScreen() : element.requestFullScreen();
+    }
+
+
   </script>
 </body>
 
