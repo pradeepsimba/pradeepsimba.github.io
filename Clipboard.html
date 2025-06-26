@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="12.png" type="image/icon type">
+  <link rel="manifest" href="Clipboard.json">
+  <meta charset="UTF-8">
+  <title>Clipboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-light: #e0e5ec;
+      --bg-dark: #1e1e2f;
+      --card-light: rgba(255, 255, 255, 0.2);
+      --card-dark: rgba(30, 30, 47, 0.4);
+      --text-light: #333;
+      --text-dark: #f1f1f1;
+      --shadow-light: 10px 10px 20px #cbced1, -10px -10px 20px #ffffff44;
+      --shadow-dark: 10px 10px 20px #141421, -10px -10px 20px #2e2e40;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg-light);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background 0.4s ease;
+      padding: 20px;
+    }
+
+    body.dark {
+      background: var(--bg-dark);
+    }
+
+    .glass-card {
+      background: var(--card-light);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: var(--shadow-light);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      animation: slideFadeIn 0.8s ease forwards;
+      opacity: 0;
+      transition: background 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    body.dark .glass-card {
+      background: var(--card-dark);
+      box-shadow: var(--shadow-dark);
+    }
+
+    @keyframes slideFadeIn {
+      0% {
+        opacity: 0;
+        transform: translateY(40px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h2 {
+      color: var(--text-light);
+      margin-bottom: 25px;
+      font-size: 1.5rem;
+      transition: color 0.4s ease;
+    }
+
+    body.dark h2 {
+      color: var(--text-dark);
+    }
+
+    .copy-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-light);
+      box-shadow: inset 6px 6px 12px #c5c9cc, inset -6px -6px 12px #ffffff;
+      border-radius: 14px;
+      padding: 12px 16px;
+      transition: background 0.4s ease;
+    }
+
+    body.dark .copy-box {
+      background: #2d2d44;
+      box-shadow: inset 4px 4px 10px #1a1a28, inset -4px -4px 10px #3e3e56;
+    }
+
+    #copyText {
+      color: var(--text-light);
+      font-size: 15px;
+      user-select: text;
+      flex: 1;
+      text-align: left;
+      transition: color 0.4s ease;
+      overflow-wrap: break-word;
+    }
+
+    body.dark #copyText {
+      color: var(--text-dark);
+    }
+
+    .copy-btn {
+      background: var(--bg-light);
+      box-shadow: 5px 5px 10px #babecc, -5px -5px 10px #ffffff;
+      border: none;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-left: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    body.dark .copy-btn {
+      background: #2d2d44;
+      box-shadow: 5px 5px 10px #1a1a28, -5px -5px 10px #3e3e56;
+    }
+
+    .copy-btn:hover {
+      box-shadow: inset 4px 4px 8px #babecc, inset -4px -4px 8px #ffffff;
+    }
+
+    .copy-btn:active::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.3);
+      top: 0;
+      left: 0;
+      animation: ripple 0.5s ease;
+    }
+
+    @keyframes ripple {
+      from {
+        opacity: 1;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 0;
+        transform: scale(2);
+      }
+    }
+
+    .copy-btn i {
+      font-size: 16px;
+      color: var(--text-light);
+      transition: color 0.4s ease;
+    }
+
+    body.dark .copy-btn i {
+      color: var(--text-dark);
+    }
+
+    .success-message {
+      margin-top: 20px;
+      color: #2ecc71;
+      font-size: 14px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+
+    .success-message.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toggle-btn {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      font-size: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #333;
+      transition: color 0.3s ease;
+      z-index: 1000;
+    }
+
+    body.dark .toggle-btn {
+      color: #f1f1f1;
+    }
+
+    @media (max-width: 480px) {
+      .glass-card {
+        padding: 24px;
+      }
+
+      h2 {
+        font-size: 1.3rem;
+      }
+
+      .copy-btn {
+        padding: 8px 10px;
+      }
+
+      #copyText {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Dark mode toggle -->
+  <button class="toggle-btn" onclick="toggleDarkMode()" title="Toggle dark mode">
+    <i class="fas fa-moon" id="modeIcon"></i>
+  </button>
+
+  <div class="glass-card">
+    <h2>Hello World.</h2>
+    <div class="copy-box">
+      <span id="copyText">bluetreejumpsquickly27</span>
+      <button class="copy-btn" onclick="copyText()">
+        <i class="fas fa-copy"></i>
+      </button>
+    </div>
+    <div class="success-message" id="successMessage">✔ Copied to clipboard</div>
+  </div>
+
+  <script>
+    function copyText() {
+      const text = document.getElementById("copyText").innerText;
+      const successMsg = document.getElementById("successMessage");
+
+      navigator.clipboard.writeText(text).then(() => {
+        successMsg.classList.add("show");
+        setTimeout(() => {
+          successMsg.classList.remove("show");
+        }, 2000);
+      }).catch(err => {
+        console.error("Failed to copy: ", err);
+      });
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+      const icon = document.getElementById("modeIcon");
+      if (document.body.classList.contains("dark")) {
+        localStorage.setItem("theme", "dark");
+        icon.classList.replace("fa-moon", "fa-sun");
+      } else {
+        localStorage.setItem("theme", "light");
+        icon.classList.replace("fa-sun", "fa-moon");
+      }
+    }
+
+    window.onload = () => {
+      const savedTheme = localStorage.getItem("theme");
+      const icon = document.getElementById("modeIcon");
+      if (savedTheme === "dark") {
+        document.body.classList.add("dark");
+        icon.classList.replace("fa-moon", "fa-sun");
+      }
+    };
+  </script>
+
+</body>
+</html>
