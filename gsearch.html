@@ -18,22 +18,22 @@
         :root {
             /* Light Theme - Neumorphism */
             --bg-light: #e0e5ec;
-            --text-light: #5b6673;
-            --primary-light: #17c03c;
+            --text-light: #000000;
+            --primary-light: #008f1f;
             --shadow-light-1: #a3b1c6;
             --shadow-light-2: #ffffff;
             --neumorphic-shadow-light: 6px 6px 12px var(--shadow-light-1), -6px -6px 12px var(--shadow-light-2);
-            --neumorphic-shadow-inset-light: inset 6px 6px 12px var(--shadow-light-1), inset -6px -6px 12px var(--shadow-light-2);
+            --neumorphic-shadow-inset-light: inset 4px 4px 8px var(--shadow-light-1), inset -4px -4px 8px var(--shadow-light-2);
             --border-light: #d1d9e6;
 
             /* Dark Theme - Neumorphism */
             --bg-dark: #2c2c2c;
-            --text-dark: #b0b0b0;
-            --primary-dark: #ff4b5c;
+            --text-dark: #ffffff;
+            --primary-dark: #0d6efd;
             --shadow-dark-1: #1e1e1e;
             --shadow-dark-2: #3a3a3a;
             --neumorphic-shadow-dark: 6px 6px 12px var(--shadow-dark-1), -6px -6px 12px var(--shadow-dark-2);
-            --neumorphic-shadow-inset-dark: inset 6px 6px 12px var(--shadow-dark-1), inset -6px -6px 12px var(--shadow-dark-2);
+            --neumorphic-shadow-inset-dark: inset 4px 4px 8px var(--shadow-dark-1), inset -4px -4px 8px var(--shadow-dark-2);
             --border-dark: #3a3a3a;
             
             /* Default to light theme variables */
@@ -68,7 +68,7 @@
         }
 
         .navbar {
-            padding: 1rem 1.5rem;
+            padding: 0.8rem 1.5rem;
         }
         
         .navbar-brand {
@@ -81,7 +81,6 @@
              color: var(--primary-dark) !important;
         }
 
-        /* BUG FIX: Toggler icon color in dark mode */
         .navbar-toggler {
             border: none;
         }
@@ -93,22 +92,34 @@
         }
 
 
+        /* --- Search Bar --- */
+        #search-form .form-control {
+            width: 220px;
+            transition: width 0.3s ease-in-out;
+        }
+        #search-form .form-control:focus {
+            width: 300px;
+        }
+        @media (max-width: 991.98px) {
+            #search-form .form-control, #search-form .form-control:focus {
+                width: 100%;
+            }
+        }
+
+
         /* --- Inputs and Buttons --- */
-        .form-control, .btn {
+        .form-control {
             border-radius: 30px;
             border: none;
             background-color: var(--bg-light);
             box-shadow: var(--neumorphic-shadow-inset-light);
             transition: box-shadow 0.2s ease, background-color 0.3s ease;
+            padding: 0.5rem 1rem;
         }
-        .dark-mode .form-control, .dark-mode .btn {
+        .dark-mode .form-control {
             background-color: var(--bg-dark);
             box-shadow: var(--neumorphic-shadow-inset-dark);
             color: var(--text-dark);
-        }
-
-        .form-control {
-            padding: 0.5rem 1rem;
         }
         .form-control::placeholder {
             color: var(--text-light);
@@ -119,14 +130,24 @@
         }
         
         .btn {
+            border-radius: 30px;
+            border: none;
+            background-color: var(--bg-light);
             box-shadow: var(--neumorphic-shadow-light);
             color: var(--text-light);
             font-weight: 600;
+            transition: all 0.2s ease-in-out;
         }
-        .btn:active, .btn:focus {
+        .btn:active, .btn.active {
             box-shadow: var(--neumorphic-shadow-inset-light) !important;
+            transform: translateY(1px);
         }
-        .dark-mode .btn:active, .dark-mode .btn:focus {
+        .dark-mode .btn {
+            background-color: var(--bg-dark);
+            box-shadow: var(--neumorphic-shadow-dark);
+            color: var(--text-dark);
+        }
+        .dark-mode .btn:active, .dark-mode .btn.active {
             box-shadow: var(--neumorphic-shadow-inset-dark) !important;
         }
 
@@ -138,31 +159,36 @@
             background-color: var(--primary-dark);
         }
         
-        .btn-outline-secondary { /* Re-style this for Neumorphism */
-            background-color: transparent;
-        }
-        .dark-mode .btn-outline-secondary {
-            color: var(--text-dark);
-        }
-        
         /* --- Card Specifics --- */
         #app {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 2rem;
         }
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
         .card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-6px);
         }
         .card-title {
-            font-weight: 600;
-            color: var(--text-light);
+            font-weight: 700;
+            color: var(--primary);
         }
         .dark-mode .card-title {
-             color: #e0e0e0;
+             color: var(--primary-dark);
+        }
+        .card-text {
+            color: var(--text-light);
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        .dark-mode .card-text {
+            color: var(--text-dark);
         }
         .card hr {
             border-color: var(--border-light);
+            opacity: 0.5;
         }
         .dark-mode .card hr {
             border-color: var(--border-dark);
@@ -171,7 +197,7 @@
             background-color: transparent;
             box-shadow: none;
             color: var(--text-light);
-            opacity: 0.7;
+            opacity: 0.6;
         }
         .dark-mode .card-actions .btn {
             color: var(--text-dark);
@@ -187,16 +213,14 @@
         /* --- Utilities & Other --- */
         #dark-mode-toggle {
             cursor: pointer;
-            font-size: 1.25rem;
-            color: var(--text-light);
+            font-size: 1.3rem;
+            color: var(--primary);
+            transition: transform 0.2s ease, color 0.3s ease;
         }
         #dark-mode-toggle:hover {
-            color: var(--primary);
+            transform: scale(1.15) rotate(-15deg);
         }
         .dark-mode #dark-mode-toggle {
-            color: var(--text-dark);
-        }
-        .dark-mode #dark-mode-toggle:hover {
             color: var(--primary-dark);
         }
         #loading-message {
@@ -210,7 +234,6 @@
             color: var(--text-dark);
         }
 
-        /* Modal Theming */
         .dark-mode .modal-header, .dark-mode .modal-footer {
              border-color: var(--border-dark);
         }
@@ -231,11 +254,11 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarContent">
-                <form class="d-flex w-100 my-2 my-lg-0 mx-lg-4" id="search-books" role="search">
-                    <input class="form-control me-2" type="search" placeholder="Search bookmarks..." name="search" aria-label="Search">
-                </form>
-                <div class="d-flex align-items-center justify-content-end mt-2 mt-lg-0">
-                     <div id="dark-mode-toggle" onclick="toggleTheme()" class="me-4">
+                <div class="navbar-nav ms-auto d-flex flex-lg-row flex-column align-items-lg-center gap-3 mt-3 mt-lg-0">
+                    <form class="d-flex" id="search-form" role="search">
+                        <input class="form-control" type="search" placeholder="Search..." name="search" aria-label="Search">
+                    </form>
+                    <div id="dark-mode-toggle" onclick="toggleTheme()">
                         <i id="theme-icon" class="fas fa-moon"></i>
                     </div>
                     <div class="auth-buttons d-flex gap-2">
@@ -250,6 +273,7 @@
 
     <div class="container my-5">
         <div id="app">
+            <!-- Bookmarks will be rendered here by JavaScript -->
             <div id="loading-message">
                 Please sign in to load content from Google Drive.
             </div>
@@ -266,6 +290,7 @@
                 <div class="modal-body">
                     <form id="bookForm">
                         <input type="hidden" id="bookId">
+                        <!-- Form fields are unchanged -->
                         <div class="mb-3">
                             <label for="bookTitle" class="form-label">Title</label>
                             <input type="text" class="form-control" id="bookTitle" required>
@@ -349,6 +374,7 @@
         let gisInited = false;
         let domLoaded = false;
         let books = [];
+        let searchForm;
         
         function gapiLoaded() {
             gapi.load('client', initializeGapiClient);
@@ -356,22 +382,15 @@
         
         async function initializeGapiClient() {
             try {
-                await gapi.client.init({
-                    apiKey: API_KEY,
-                    discoveryDocs: DISCOVERY_DOCS,
-                });
+                await gapi.client.init({ apiKey: API_KEY, discoveryDocs: DISCOVERY_DOCS });
                 gapiInited = true;
                 checkIfAllReady();
-            } catch (error) {
-                console.error("Error initializing GAPI client:", error);
-            }
+            } catch (error) { console.error("Error initializing GAPI client:", error); }
         }
         
         function gisLoaded() {
             tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: SCOPES,
-                callback: handleTokenResponse,
+                client_id: CLIENT_ID, scope: SCOPES, callback: handleTokenResponse,
             });
             gisInited = true;
             checkIfAllReady();
@@ -380,9 +399,7 @@
         function checkIfAllReady() {
             if (gapiInited && gisInited && domLoaded) {
                 signinButton.style.display = 'block';
-                if (gapi.client.getToken()) {
-                    handleAuthSuccess();
-                }
+                if (gapi.client.getToken()) { handleAuthSuccess(); }
             }
         }
         
@@ -393,18 +410,21 @@
             appContainer = document.getElementById('app');
             loadingMessage = document.getElementById('loading-message');
             addOrEditBookModal = new bootstrap.Modal(document.getElementById('addOrEditBookModal'));
+            searchForm = document.getElementById('search-form');
+
             if (signinButton) signinButton.onclick = handleAuthClick;
             if (signoutButton) signoutButton.onclick = handleSignoutClick;
             document.getElementById('bookForm').addEventListener('submit', submitBookForm);
+            searchForm.addEventListener('submit', handleSearch);
+            searchForm.elements['search'].addEventListener('input', handleSearch); // Search as you type
+            
             domLoaded = true;
             loadTheme();
             checkIfAllReady();
         };
         
         async function handleTokenResponse(resp) {
-            if (resp.error) {
-                return;
-            }
+            if (resp.error) return;
             gapi.client.setToken(resp);
             handleAuthSuccess();
         }
@@ -444,14 +464,9 @@
             if (folderId) {
                 try {
                     const response = await gapi.client.drive.files.get({ fileId: folderId, fields: 'id, name, mimeType, trashed' });
-                    if (response.result && response.result.mimeType === 'application/vnd.google-apps.folder' && !response.result.trashed) {
-                        return folderId;
-                    } else {
-                        localStorage.removeItem('app_folder_id');
-                    }
-                } catch (error) {
-                    localStorage.removeItem('app_folder_id');
-                }
+                    if (response.result && response.result.mimeType === 'application/vnd.google-apps.folder' && !response.result.trashed) return folderId;
+                    else localStorage.removeItem('app_folder_id');
+                } catch (error) { localStorage.removeItem('app_folder_id'); }
             }
             const response = await gapi.client.drive.files.list({ q: `name = '${APP_FOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`, fields: 'files(id)' });
             if (response.result.files && response.result.files.length > 0) {
@@ -475,12 +490,8 @@
                             GOOGLE_DRIVE_JSON_FILE_ID = fileId;
                             await loadBooksFromDrive(fileId);
                             return;
-                        } else {
-                            localStorage.removeItem('google_drive_json_file_id');
-                        }
-                    } catch (error) {
-                        localStorage.removeItem('google_drive_json_file_id');
-                    }
+                        } else { localStorage.removeItem('google_drive_json_file_id'); }
+                    } catch (error) { localStorage.removeItem('google_drive_json_file_id'); }
                 }
                 const response = await gapi.client.drive.files.list({ q: `'${appFolderId}' in parents and name = '${JSON_FILE_NAME}' and trashed = false`, fields: 'files(id)' });
                 if (response.result.files && response.result.files.length > 0) {
@@ -491,20 +502,14 @@
                     formData.append("metadata", new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
                     formData.append("file", new Blob([DEFAULT_JSON_CONTENT], { type: 'application/json' }));
                     const token = gapi.client.getToken().access_token;
-                    const uploadResponse = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
-                        method: 'POST',
-                        headers: new Headers({ "Authorization": "Bearer " + token }),
-                        body: formData
-                    });
+                    const uploadResponse = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", { method: 'POST', headers: new Headers({ "Authorization": "Bearer " + token }), body: formData });
                     const result = await uploadResponse.json();
                     fileId = result.id;
                 }
                 localStorage.setItem('google_drive_json_file_id', fileId);
                 GOOGLE_DRIVE_JSON_FILE_ID = fileId;
                 await loadBooksFromDrive(fileId);
-            } catch (error) {
-                appContainer.innerHTML = `<div id="loading-message" style="color: red;">Error setting up Google Drive files. Please check console.</div>`;
-            }
+            } catch (error) { appContainer.innerHTML = `<div id="loading-message" style="color: red;">Error setting up Google Drive files. Please check console.</div>`; }
         }
         
         async function loadBooksFromDrive(fileId) {
@@ -515,9 +520,7 @@
                 books = JSON.parse(response.body);
                 render(books);
                 loadingMessage.style.display = 'none';
-            } catch (error) {
-                appContainer.innerHTML = '<div id="loading-message" style="color: red;">Error loading content.</div>';
-            }
+            } catch (error) { appContainer.innerHTML = '<div id="loading-message" style="color: red;">Error loading content.</div>'; }
         }
         
         async function saveBooksToDrive() {
@@ -527,16 +530,10 @@
                 loadingMessage.textContent = 'Saving...';
                 const jsonContent = JSON.stringify(books, null, 2);
                 const token = gapi.client.getToken().access_token;
-                await fetch(`https://www.googleapis.com/upload/drive/v3/files/${GOOGLE_DRIVE_JSON_FILE_ID}?uploadType=media`, {
-                    method: 'PATCH',
-                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-                    body: jsonContent
-                });
+                await fetch(`https://www.googleapis.com/upload/drive/v3/files/${GOOGLE_DRIVE_JSON_FILE_ID}?uploadType=media`, { method: 'PATCH', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: jsonContent });
                 loadingMessage.style.display = 'none';
                 render(books);
-            } catch (error) {
-                loadingMessage.textContent = 'Error saving!';
-            }
+            } catch (error) { loadingMessage.textContent = 'Error saving!'; }
         }
         
         function generateUniqueId() {
@@ -550,12 +547,10 @@
             if (mode === 'edit') {
                 const bookToEdit = books.find(b => b.id === bookId);
                 if (bookToEdit) {
-                    Object.keys(bookToEdit).forEach(key => {
-                        const el = document.getElementById(`book${key.charAt(0).toUpperCase() + key.slice(1)}`);
-                        if(key === 'id') document.getElementById('bookId').value = bookToEdit.id;
-                        else if (el) el.value = bookToEdit[key] || '';
-                    });
-                     // Manual mapping for different prop names
+                    document.getElementById('bookId').value = bookToEdit.id;
+                    document.getElementById('bookTitle').value = bookToEdit.title || '';
+                    document.getElementById('bookDescription').value = bookToEdit.description || '';
+                    document.getElementById('bookLink').value = bookToEdit.link || '';
                     document.getElementById('bookRefLinkA').value = bookToEdit.reflinka || '';
                     document.getElementById('bookRefLinkB').value = bookToEdit.reflinkb || '';
                     document.getElementById('bookRefLinkC').value = bookToEdit.reflinkc || '';
@@ -587,16 +582,17 @@
         }
         
         async function deleteBook(bookId) {
-            if (confirm("Are you sure?")) {
+            if (confirm("Are you sure you want to delete this bookmark?")) {
                 books = books.filter(b => b.id !== bookId);
                 await saveBooksToDrive();
             }
         }
-        
+
         const render = (data) => {
             const app = document.getElementById('app');
+            const searchTerm = searchForm.elements['search'].value;
             if (!data || data.length === 0) {
-                app.innerHTML = `<div id="loading-message">${document.querySelector('input[name="search"]').value ? 'No matches found.' : 'No bookmarks yet.'}</div>`;
+                app.innerHTML = `<div id="loading-message">${searchTerm ? 'No bookmarks match your search.' : 'No bookmarks yet. Click "Add Book" to start!'}</div>`;
                 return;
             }
             app.innerHTML = data.map(book => `
@@ -610,7 +606,7 @@
                     </div>
                     <hr class="my-2">
                     <div class="card-body p-0">
-                        ${book.description ? `<p class="card-text mb-3 small">${book.description}</p>` : ''}
+                        ${book.description ? `<p class="card-text mb-3">${book.description}</p>` : ''}
                         <div class="links-section d-flex flex-wrap gap-2">
                              ${book.link ? `<a href="${book.link}" target="_blank" class="btn btn-sm btn-primary">Answer Link</a>` : ''}
                             ${book.reflinka ? `<a href="${book.reflinka}" target="_blank" class="btn btn-sm">Ref 1</a>` : ''}
@@ -622,9 +618,9 @@
             `).join('');
         }
         
-        document.getElementById('search-books').addEventListener('submit', function (event) {
+        function handleSearch(event) {
             event.preventDefault();
-            const searchTerm = event.target.elements['search'].value.toLowerCase().trim();
+            const searchTerm = event.target.value.toLowerCase().trim();
             const tokens = searchTerm.split(' ').filter(Boolean);
             if (tokens.length) {
                 const filtered = books.filter(book => {
@@ -635,8 +631,7 @@
             } else {
                 render(books);
             }
-        });
-        
+        }
     </script>
 
     <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
