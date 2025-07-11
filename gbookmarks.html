@@ -371,7 +371,7 @@
         const SCOPES = 'https://www.googleapis.com/auth/drive.file';
         const APP_FOLDER_NAME = "PradeepSimba_ModernBookmarksData";
         const JSON_FILE_NAME = "bookmarks.json";
-        const DEFAULT_JSON_CONTENT = JSON.stringify({ folders: [], bookmarks: [] });
+        const DEFAULT_JSON_CONTENT = JSON.stringify({ folders: [], books: [] });
         const FALLBACK_ICON_SRC = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iY3VycmVudENvbG9yIiBjbGFzcz0iYmkgYmktbGluay00NWRlZyIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBkPSJNNC43MTUgNi41NDIgMy4zNDMgNy45MTRhMyAzIDAgMSAwIDQuMjQzIDQuMjQzbDEuODI4LTEuODI5QTMgMyAwIDAgMCA4LjU4NiA1LjVMOCA2LjA4NmExIDEgMCAwIDAtLjE1NC4xOTkyIDIgMiAwIDAgMSAuODYxIDMuMzM3TDYuODggMTEuNDVhMiAyIDAgMSAxLTIuODMtMi44M2wuNzkzLS43OTJhNCA0IDAgMCAxLS4xMjgtMS4yODd6Ii8+PHBhdGggZD0iTTYuNTg2IDQuNjcyQTMgMyAwIDAgMCA3LjQxNCA5LjVsLjc3NS0uNzc2YTIgMiAwIDAgMS0uODk2LTMuMzQ2TDkuMTIgMy41NWExIDIgMiAwIDEgMSAyLjgzIDIuODNsLS43OTMuNzkyYy4xMTIuNDIuMTU1LjgzNC4xMjggMS4yODdsMS4zNzItMS4zNzJhMyAzIDAgMSAwLTQuMjQzLTQuMjQzeiIvPjwvc3ZnPg==';
 
         let tokenClient;
@@ -522,10 +522,10 @@
                         parsedData = JSON.parse(response.body);
                     } catch (e) {
                         console.error("Failed to parse JSON, defaulting to empty state.", e);
-                        parsedData = { folders: [], bookmarks: [] };
+                        parsedData = { folders: [], books: [] };
                     }
                 } else {
-                    parsedData = { folders: [], bookmarks: [] };
+                    parsedData = { folders: [], books: [] };
                 }
 
                 if (Array.isArray(parsedData)) {
@@ -537,7 +537,9 @@
                     updateLoadingMessage('Migration complete!');
                 } else {
                     folders = parsedData.folders || [];
-                    books = parsedData.bookmarks || [];
+                    // ----- THIS IS THE CORRECTED LINE -----
+                    books = parsedData.books || []; // Corrected from .bookmarks to .books
+                    // ------------------------------------
                 }
                 render(); // Call render without arguments to show all data
             } catch (error) {
@@ -682,7 +684,7 @@
             }
         }
 
-        // --- RENDERING & UI (REWRITTEN & CORRECTED) ---
+        // --- RENDERING & UI ---
         const render = (dataToRender = books, isSearch = false) => {
             if (loadingMessage) loadingMessage.style.display = 'none';
 
