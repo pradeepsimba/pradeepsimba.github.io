@@ -16,69 +16,147 @@
 
     <style>
         :root {
-            /* Light Theme - Neumorphism */
-            --bg-light: #e0e5ec;
-            --text-light: #000000;
-            --primary-light: #008f1f;
-            --shadow-light-1: #a3b1c6;
-            --shadow-light-2: #ffffff;
+            /* --- Global & Base Colors (for shadows and general theme properties) --- */
+            /* Light Theme */
+            --general-bg-light: #f0f4f8; /* Base background for neumorphism calculations */
+            --general-text-light: #000000; /* Base text color for neumorphism calculations */
+            --primary-accent-light: #000000; /* Primary accent color for light theme */
+            --shadow-light-1: #a3b1c6; /* Darker shadow for neumorphism */
+            --shadow-light-2: #ffffff; /* Lighter shadow for neumorphism */
             --neumorphic-shadow-light: 6px 6px 12px var(--shadow-light-1), -6px -6px 12px var(--shadow-light-2);
             --neumorphic-shadow-inset-light: inset 4px 4px 8px var(--shadow-light-1), inset -4px -4px 8px var(--shadow-light-2);
-            --border-light: #d1d9e6;
+            --general-border-light: #d1d9e6; /* General border color for light theme */
 
-            /* Dark Theme - Neumorphism */
-            --bg-dark: #2c2c2c;
-            --text-dark: #ffffff;
-            --primary-dark: #0d6efd;
-            --shadow-dark-1: #1e1e1e;
-            --shadow-dark-2: #3a3a3a;
+            /* Dark Theme */
+            --general-bg-dark: #121212; /* Base background for neumorphism dark */
+            --general-text-dark: #e0e0e0; /* Base text color for neumorphism calculations dark */
+            --primary-accent-dark: #007bff; /* Primary accent color for dark theme */
+            --shadow-dark-1: #0f0f0f; /* Darker shadow for neumorphism in dark mode */
+            --shadow-dark-2: #2b2b2b; /* Lighter shadow for neumorphism in dark mode */
             --neumorphic-shadow-dark: 6px 6px 12px var(--shadow-dark-1), -6px -6px 12px var(--shadow-dark-2);
             --neumorphic-shadow-inset-dark: inset 4px 4px 8px var(--shadow-dark-1), inset -4px -4px 8px var(--shadow-dark-2);
-            --border-dark: #3a3a3a;
-            
-            /* Default to light theme variables */
-            --primary: var(--primary-light);
+            --general-border-dark: #3a3a3a; /* General border color for dark theme */
+
+            /* Current active primary accent color (controlled by JS) */
+            --primary: var(--primary-accent-light);
+
+            /* --- Body Specific Colors --- */
+            --body-bg-light: #f0f4f8; /* Very light blue-grey */
+            --body-text-light: #34495e; /* Dark blue-grey */
+            --body-bg-dark: #121212; /* Deep dark grey */
+            --body-text-dark: #e0e0e0; /* Light grey */
+
+            /* --- Navbar Specific Colors --- */
+            --navbar-bg-light: #e8eff5; /* Slightly darker than body bg light */
+            --navbar-brand-text-light: #000000; /* Darker green */
+            --navbar-toggler-icon-light: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(0, 0, 0, 0.55)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+            --navbar-bg-dark: #1c1c1c; /* Slightly lighter than body bg dark */
+            --navbar-brand-text-dark: #ffffff; /* Primary blue dark */
+            --navbar-toggler-icon-dark: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+
+            /* --- Input Field Specific Colors (General Form Controls like in Modal) --- */
+            --input-general-bg-light: #ffffff; /* Pure white for clear input fields */
+            --input-general-text-light: #212529; /* Very dark grey for input text */
+            --input-general-placeholder-light: #6c757d; /* Standard muted grey */
+            --input-label-text-light: #495057; /* Form label text color */
+            --input-general-bg-dark: #2a2a2a; /* Dark grey for inputs */
+            --input-general-text-dark: #f8f9fa; /* Very light grey */
+            --input-general-placeholder-dark: #ced4da; /* Muted light grey */
+            --input-label-text-dark: #e9ecef; /* Form label text color in dark mode */
+
+            /* --- Search Bar Specific Colors (Overrides general input) --- */
+            --search-input-bg-light: #e0e5ec; /* Classic neumorphic base for search */
+            --search-input-text-light: #343a40; /* Darker text for search */
+            --search-input-placeholder-light: #868e96; /* Muted grey for search placeholder */
+            --search-input-bg-dark: #2c2c2c; /* Classic neumorphic base for search dark */
+            --search-input-text-dark: #e9ecef; /* Light text for search */
+            --search-input-placeholder-dark: #adb5bd; /* Muted light grey for search placeholder */
+
+            /* --- Button Specific Colors --- */
+            --button-default-bg-light: #e0e5ec; /* Default button background (matches general neumorphic base) */
+            --button-default-text-light: #34495e; /* Dark text */
+            --button-primary-bg-light: #a74128; /* Vibrant green */
+            --button-primary-text-light: #ffffff; /* White */
+            --button-secondary-bg-light: #6c757d; /* Muted grey-blue */
+            --button-secondary-text-light: #ffffff; /* White */
+            --button-default-bg-dark: #1a1a1a; /* Default button background dark (matches general neumorphic base) */
+            --button-default-text-dark: #f0f0f0; /* Light text */
+            --button-primary-bg-dark: #007bff; /* Vibrant blue */
+            --button-primary-text-dark: #ffffff; /* White */
+            --button-secondary-bg-dark: #722ad1; /* Darker muted grey */
+            --button-secondary-text-dark: #ffffff; /* White */
+
+            /* --- Card Specific Colors --- */
+            --card-bg-light: #f8fafd; /* Even lighter, almost white for cards */
+            --card-title-text-light: #000000; /* Vibrant green */
+            --card-body-text-light: #495057; /* Darker grey */
+            --card-hr-border-light: #ced4da; /* Light border */
+            --card-action-btn-text-light: #555555; /* Dark grey */
+            --card-action-btn-hover-text-light: #000000; /* Vibrant green */
+            --card-bg-dark: #181818; /* Even darker for cards */
+            --card-title-text-dark: #ffffff; /* Vibrant blue */
+            --card-body-text-dark: #ced4da; /* Light grey */
+            --card-hr-border-dark: #495057; /* Dark border */
+            --card-action-btn-text-dark: #bbbbbb; /* Light grey */
+            --card-action-btn-hover-text-dark: #ffffff; /* Vibrant blue */
+
+            /* --- Modal Specific Colors --- */
+            --modal-bg-light: #ffffff; /* Pure white for modals */
+            --modal-header-border-light: #dee2e6; /* Light border */
+            --modal-footer-border-light: #dee2e6; /* Light border */
+            --modal-title-text-light: #343a40; /* Dark text */
+            --modal-body-text-light: #495057; /* For paragraph text in modal body */
+            --modal-close-btn-filter-light: none;
+            --modal-bg-dark: #212121; /* Darker for modals */
+            --modal-header-border-dark: #495057; /* Dark border */
+            --modal-footer-border-dark: #495057; /* Dark border */
+            --modal-title-text-dark: #f8f9fa; /* Light text */
+            --modal-body-text-dark: #e0e0e0; /* For paragraph text in modal body */
+            --modal-close-btn-filter-dark: invert(1) grayscale(100%) brightness(200%);
+
+            /* --- Utility & Other Colors --- */
+            --dark-mode-toggle-icon-light: #000000; /* Amber for sun icon */
+            --loading-message-text-light: #6c757d; /* Muted grey */
+            --dark-mode-toggle-icon-dark: #ffeb3b; /* Yellow for moon icon */
+            --loading-message-text-dark: #adb5bd; /* Muted light grey */
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-light);
+            background-color: var(--body-bg-light);
+            color: var(--body-text-light);
             padding-top: 100px;
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .dark-mode {
-            background-color: var(--bg-dark);
-            color: var(--text-dark);
+            background-color: var(--body-bg-dark);
+            color: var(--body-text-dark);
         }
 
         /* --- Components --- */
-        .navbar, .card, .modal-content {
+        .navbar {
             border-radius: 20px;
-            background-color: var(--bg-light);
+            background-color: var(--navbar-bg-light);
             box-shadow: var(--neumorphic-shadow-light);
             border: none;
+            padding: 0.8rem 1.5rem;
             transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .dark-mode .navbar, .dark-mode .card, .dark-mode .modal-content {
-            background-color: var(--bg-dark);
+        .dark-mode .navbar {
+            background-color: var(--navbar-bg-dark);
             box-shadow: var(--neumorphic-shadow-dark);
-        }
-
-        .navbar {
-            padding: 0.8rem 1.5rem;
         }
         
         .navbar-brand {
             font-weight: 700;
             font-size: 1.6rem;
-            color: var(--primary) !important;
+            color: var(--navbar-brand-text-light) !important;
         }
         
         .dark-mode .navbar-brand {
-             color: var(--primary-dark) !important;
+            color: var(--navbar-brand-text-dark) !important;
         }
 
         .navbar-toggler {
@@ -87,15 +165,50 @@
         .navbar-toggler:focus {
             box-shadow: none;
         }
+        .navbar-toggler-icon {
+            background-image: var(--navbar-toggler-icon-light);
+        }
         .dark-mode .navbar-toggler-icon {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+            background-image: var(--navbar-toggler-icon-dark);
         }
 
 
-        /* --- Search Bar --- */
+        /* --- General Form Controls (e.g., in Modal) --- */
+        .form-control {
+            border-radius: 30px;
+            border: none;
+            background-color: var(--input-general-bg-light);
+            box-shadow: var(--neumorphic-shadow-inset-light);
+            transition: box-shadow 0.2s ease, background-color 0.3s ease;
+            padding: 0.5rem 1rem;
+            color: var(--input-general-text-light);
+        }
+        .dark-mode .form-control {
+            background-color: var(--input-general-bg-dark);
+            box-shadow: var(--neumorphic-shadow-inset-dark);
+            color: var(--input-general-text-dark);
+        }
+        .form-control::placeholder {
+            color: var(--input-general-placeholder-light);
+            opacity: 0.7;
+        }
+        .dark-mode .form-control::placeholder {
+            color: var(--input-general-placeholder-dark);
+        }
+        .form-label {
+            color: var(--input-label-text-light);
+        }
+        .dark-mode .form-label {
+            color: var(--input-label-text-dark);
+        }
+
+
+        /* --- Search Bar Specific Overrides --- */
         #search-form .form-control {
             width: 220px;
             transition: width 0.3s ease-in-out;
+            background-color: var(--search-input-bg-light);
+            color: var(--search-input-text-light);
         }
         #search-form .form-control:focus {
             width: 300px;
@@ -105,60 +218,69 @@
                 width: 100%;
             }
         }
-
-
-        /* --- Inputs and Buttons --- */
-        .form-control {
-            border-radius: 30px;
-            border: none;
-            background-color: var(--bg-light);
-            box-shadow: var(--neumorphic-shadow-inset-light);
-            transition: box-shadow 0.2s ease, background-color 0.3s ease;
-            padding: 0.5rem 1rem;
-        }
-        .dark-mode .form-control {
-            background-color: var(--bg-dark);
+        .dark-mode #search-form .form-control {
+            background-color: var(--search-input-bg-dark);
             box-shadow: var(--neumorphic-shadow-inset-dark);
-            color: var(--text-dark);
+            color: var(--search-input-text-dark);
         }
-        .form-control::placeholder {
-            color: var(--text-light);
-            opacity: 0.7;
+        #search-form .form-control::placeholder {
+            color: var(--search-input-placeholder-light);
         }
-        .dark-mode .form-control::placeholder {
-            color: var(--text-dark);
+        .dark-mode #search-form .form-control::placeholder {
+            color: var(--search-input-placeholder-dark);
         }
-        
+
+
+        /* --- Base Button Styles --- */
         .btn {
             border-radius: 30px;
             border: none;
-            background-color: var(--bg-light);
             box-shadow: var(--neumorphic-shadow-light);
-            color: var(--text-light);
             font-weight: 600;
             transition: all 0.2s ease-in-out;
+            padding: 0.5rem 1rem;
         }
         .btn:active, .btn.active {
             box-shadow: var(--neumorphic-shadow-inset-light) !important;
             transform: translateY(1px);
         }
         .dark-mode .btn {
-            background-color: var(--bg-dark);
             box-shadow: var(--neumorphic-shadow-dark);
-            color: var(--text-dark);
         }
         .dark-mode .btn:active, .dark-mode .btn.active {
             box-shadow: var(--neumorphic-shadow-inset-dark) !important;
         }
 
+        /* --- Default Button (if no specific type is applied) --- */
+        .btn:not(.btn-primary):not(.btn-secondary) {
+            background-color: var(--button-default-bg-light);
+            color: var(--button-default-text-light);
+        }
+        .dark-mode .btn:not(.btn-primary):not(.btn-secondary) {
+            background-color: var(--button-default-bg-dark);
+            color: var(--button-default-text-dark);
+        }
+
+        /* --- Primary Button --- */
         .btn-primary {
-            background-color: var(--primary);
-            color: white;
+            background-color: var(--button-primary-bg-light);
+            color: var(--button-primary-text-light);
         }
         .dark-mode .btn-primary {
-            background-color: var(--primary-dark);
+            background-color: var(--button-primary-bg-dark);
+            color: var(--button-primary-text-dark);
         }
         
+        /* --- Secondary Button --- */
+        .btn-secondary {
+            background-color: var(--button-secondary-bg-light);
+            color: var(--button-secondary-text-light);
+        }
+        .dark-mode .btn-secondary {
+            background-color: var(--button-secondary-bg-dark);
+            color: var(--button-secondary-text-dark);
+        }
+
         /* --- Card Specifics --- */
         #app {
             display: grid;
@@ -166,82 +288,117 @@
             gap: 2rem;
         }
         .card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 20px;
+            background-color: var(--card-bg-light);
+            box-shadow: var(--neumorphic-shadow-light);
+            border: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
         }
         .card:hover {
             transform: translateY(-6px);
         }
+        .dark-mode .card {
+            background-color: var(--card-bg-dark);
+            box-shadow: var(--neumorphic-shadow-dark);
+        }
         .card-title {
             font-weight: 700;
-            color: var(--primary);
+            color: var(--card-title-text-light);
         }
         .dark-mode .card-title {
-             color: var(--primary-dark);
+            color: var(--card-title-text-dark);
         }
         .card-text {
-            color: var(--text-light);
+            color: var(--card-body-text-light);
             opacity: 0.9;
             font-size: 0.9rem;
         }
         .dark-mode .card-text {
-            color: var(--text-dark);
+            color: var(--card-body-text-dark);
         }
         .card hr {
-            border-color: var(--border-light);
+            border-color: var(--card-hr-border-light);
             opacity: 0.5;
         }
         .dark-mode .card hr {
-            border-color: var(--border-dark);
+            border-color: var(--card-hr-border-dark);
         }
         .card-actions .btn {
             background-color: transparent;
             box-shadow: none;
-            color: var(--text-light);
+            color: var(--card-action-btn-text-light);
             opacity: 0.6;
         }
         .dark-mode .card-actions .btn {
-            color: var(--text-dark);
+            color: var(--card-action-btn-text-dark);
         }
         .card-actions .btn:hover {
             opacity: 1;
-            color: var(--primary);
+            color: var(--card-action-btn-hover-text-light);
         }
         .dark-mode .card-actions .btn:hover {
-            color: var(--primary-dark);
+            color: var(--card-action-btn-hover-text-dark);
         }
         
         /* --- Utilities & Other --- */
         #dark-mode-toggle {
             cursor: pointer;
             font-size: 1.3rem;
-            color: var(--primary);
+            color: var(--dark-mode-toggle-icon-light);
             transition: transform 0.2s ease, color 0.3s ease;
         }
         #dark-mode-toggle:hover {
             transform: scale(1.15) rotate(-15deg);
         }
         .dark-mode #dark-mode-toggle {
-            color: var(--primary-dark);
+            color: var(--dark-mode-toggle-icon-dark);
         }
         #loading-message {
             text-align: center;
             padding: 50px;
             font-size: 1.2rem;
             grid-column: 1 / -1;
-            color: var(--text-light);
+            color: var(--loading-message-text-light);
         }
         .dark-mode #loading-message {
-            color: var(--text-dark);
+            color: var(--loading-message-text-dark);
         }
 
+        .modal-content {
+            border-radius: 20px;
+            background-color: var(--modal-bg-light);
+            box-shadow: var(--neumorphic-shadow-light);
+            border: none;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .modal-header, .modal-footer {
+            border-color: var(--modal-header-border-light);
+        }
         .dark-mode .modal-header, .dark-mode .modal-footer {
-             border-color: var(--border-dark);
+            border-color: var(--modal-header-border-dark);
+        }
+        .modal-title {
+            color: var(--modal-title-text-light);
+        }
+        .dark-mode .modal-title {
+            color: var(--modal-title-text-dark);
+        }
+        .modal-body p { /* Specific for paragraph in custom confirm modal */
+            color: var(--modal-body-text-light);
+        }
+        .dark-mode .modal-body p {
+            color: var(--modal-body-text-dark);
+        }
+        .btn-close {
+            filter: var(--modal-close-btn-filter-light);
         }
         .dark-mode .btn-close {
-            filter: invert(1) grayscale(100%) brightness(200%);
+            filter: var(--modal-close-btn-filter-dark);
         }
         
     </style>
+
+
 </head>
 
 <body onload="loadTheme()">
@@ -338,10 +495,11 @@
             icon.className = theme === "dark" ? "fas fa-sun" : "fas fa-moon";
 
             const root = document.documentElement;
+            // Update the primary accent color based on the theme
             if (theme === "dark") {
-                root.style.setProperty("--primary", "var(--primary-dark)");
+                root.style.setProperty("--primary", "var(--primary-accent-dark)");
             } else {
-                root.style.setProperty("--primary", "var(--primary-light)");
+                root.style.setProperty("--primary", "var(--primary-accent-light)");
             }
         }
 
@@ -350,9 +508,9 @@
             if (theme === "dark") {
                 document.body.classList.add("dark-mode");
                 document.getElementById("theme-icon").className = "fas fa-sun";
-                document.documentElement.style.setProperty("--primary", "var(--primary-dark)");
+                document.documentElement.style.setProperty("--primary", "var(--primary-accent-dark)");
             } else {
-                document.documentElement.style.setProperty("--primary", "var(--primary-light)");
+                document.documentElement.style.setProperty("--primary", "var(--primary-accent-light)");
             }
         }
 
@@ -414,6 +572,7 @@
 
             if (signinButton) signinButton.onclick = handleAuthClick;
             if (signoutButton) signoutButton.onclick = handleSignoutClick;
+            if (addBookButton) addBookButton.onclick = () => openBookModal('add'); // Ensure this is correctly bound
             document.getElementById('bookForm').addEventListener('submit', submitBookForm);
             searchForm.addEventListener('submit', handleSearch);
             searchForm.elements['search'].addEventListener('input', handleSearch); // Search as you type
@@ -582,10 +741,46 @@
         }
         
         async function deleteBook(bookId) {
-            if (confirm("Are you sure you want to delete this bookmark?")) {
+            // Replaced alert/confirm with a custom modal for better UX and consistency
+            showCustomConfirm('Are you sure you want to delete this bookmark?', async () => {
                 books = books.filter(b => b.id !== bookId);
                 await saveBooksToDrive();
-            }
+            });
+        }
+
+        // Custom Confirm Modal (replaces browser's confirm)
+        function showCustomConfirm(message, onConfirm) {
+            const modalHtml = `
+                <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-labelledby="customConfirmModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content p-2">
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title" id="customConfirmModalLabel">Confirm Action</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>${message}</p>
+                            </div>
+                            <div class="modal-footer border-0">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary" id="confirmActionButton">Confirm</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            // Remove any existing modal to prevent duplicates
+            const existingModal = document.getElementById('customConfirmModal');
+            if (existingModal) existingModal.remove();
+
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            const customConfirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
+            customConfirmModal.show();
+
+            document.getElementById('confirmActionButton').onclick = () => {
+                onConfirm();
+                customConfirmModal.hide();
+            };
         }
 
         const render = (data) => {
@@ -609,9 +804,9 @@
                         ${book.description ? `<p class="card-text mb-3">${book.description}</p>` : ''}
                         <div class="links-section d-flex flex-wrap gap-2">
                              ${book.link ? `<a href="${book.link}" target="_blank" class="btn btn-sm btn-primary">Answer Link</a>` : ''}
-                            ${book.reflinka ? `<a href="${book.reflinka}" target="_blank" class="btn btn-sm">Ref 1</a>` : ''}
-                            ${book.reflinkb ? `<a href="${book.reflinkb}" target="_blank" class="btn btn-sm">Ref 2</a>` : ''}
-                            ${book.reflinkc ? `<a href="${book.reflinkc}" target="_blank" class="btn btn-sm">Ref 3</a>` : ''}
+                            ${book.reflinka ? `<a href="${book.reflinka}" target="_blank" class="btn btn-sm btn-secondary">Ref 1</a>` : ''}
+                            ${book.reflinkb ? `<a href="${book.reflinkb}" target="_blank" class="btn btn-sm btn-secondary">Ref 2</a>` : ''}
+                            ${book.reflinkc ? `<a href="${book.reflinkc}" target="_blank" class="btn btn-sm btn-secondary">Ref 3</a>` : ''}
                         </div>
                     </div>
                 </div>
