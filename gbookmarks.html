@@ -1,857 +1,256 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" href="12.png" type="image/png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bookmarks</title>
+  <meta charset="UTF-8">
+  <link rel="icon" href="12.png" type="image/icon type">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pradeep Simba</title>
 
-    <!-- Fonts & Icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <style>
-        :root {
-            --font-main: 'Inter', 'Segoe UI', sans-serif;
-            --transition-speed: 0.3s;
-            --border-radius-lg: 1.25rem; /* 20px */
-            --border-radius-md: 0.75rem;  /* 12px */
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-            /* Light Theme */
-            --bg-light: #e0e5ec;
-            --text-color-light: #34495e;
-            --primary-color-light: #006aff;
-            --shadow-light: 7px 7px 15px #a3b1c6, -7px -7px 15px #ffffff;
-            --shadow-inset-light: inset 7px 7px 15px #a3b1c6, inset -7px -7px 15px #ffffff;
-            --icon-color-light: #f7b801;
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
-            /* Dark Theme */
-            --bg-dark: #2c3036;
-            --text-color-dark: #bdc3c7;
-            --primary-color-dark: #80bfff;
-            --shadow-dark: 5px 5px 12px #1a1c20, -5px -5px 12px #3e444c;
-            --shadow-inset-dark: inset 5px 5px 12px #1a1c20, inset -5px -5px 12px #3e444c;
-            --icon-color-dark: #f7d46c;
-        }
+  <style>
+    :root {
+      --bg-light: #f4f6f9;
+      --bg-dark: #666666;
+      --card-light: #ffffffcc;
+      --card-dark: #000000;
+      --text-light: #212529;
+      --text-dark: #f1f1f1;
+      --primary-light: #008f1f; /* Light mode primary */
+      --primary-dark: #ff4b5c; /* Dark mode primary */
+      --primary: var(--primary-light); /* Default primary color */
+    }
 
-        [data-theme="light"] {
-            --bg: var(--bg-light);
-            --text-color: var(--text-color-light);
-            --primary-color: var(--primary-color-light);
-            --shadow: var(--shadow-light);
-            --shadow-inset: var(--shadow-inset-light);
-            --icon-color: var(--icon-color-light);
-        }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg-light);
+      color: var(--text-light);
+      padding-top: 80px;
+      transition: all 0.3s ease;
+    }
 
-        [data-theme="dark"] {
-            --bg: var(--bg-dark);
-            --text-color: var(--text-color-dark);
-            --primary-color: var(--primary-color-dark);
-            --shadow: var(--shadow-dark);
-            --shadow-inset: var(--shadow-inset-dark);
-            --icon-color: var(--icon-color-dark);
-             --bs-secondary-color: var(--text-color);
-        }
+    .dark-mode {
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
+    }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    .navbar {
+      border-radius: 20px;
+      padding: 1rem 2rem;
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.85);
+    }
 
-        body {
-            background-color: var(--bg);
-            color: var(--text-color);
-            font-family: var(--font-main);
-            padding: 120px 15px 40px;
-            transition: background-color var(--transition-speed), color var(--transition-speed);
-        }
-        
-        .header-controls {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 95%;
-            max-width: 800px;
-            display: flex;
-            gap: 12px;
-            z-index: 1001;
-            background: var(--bg);
-            padding: 12px;
-            border-radius: var(--border-radius-lg);
-            box-shadow: var(--shadow);
-            align-items: center;
-        }
-        
-        .search-bar { flex-grow: 1; }
-        .search-bar input {
-            background: var(--bg);
-            border: none;
-            padding: 10px 15px;
-            border-radius: var(--border-radius-md);
-            color: var(--text-color);
-            width: 100%;
-            font-size: 1rem;
-            box-shadow: var(--shadow-inset);
-            transition: box-shadow var(--transition-speed);
-        }
-        .search-bar input:focus { outline: none; }
-        
-        .header-button {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-color);
-            background-color: var(--bg);
-            border: none;
-            border-radius: var(--border-radius-md);
-            padding: 0 16px;
-            height: 44px;
-            display: grid;
-            place-items: center;
-            cursor: pointer;
-            box-shadow: var(--shadow);
-            transition: color var(--transition-speed), box-shadow var(--transition-speed);
-            white-space: nowrap;
-        }
-        .header-button:hover, .header-button:focus {
-            box-shadow: var(--shadow-inset);
-            color: var(--primary-color);
-        }
-        .header-button:active {
-            box-shadow: var(--shadow-inset);
-            transform: scale(0.98);
-        }
-        .header-button.btn-primary {
-             background: var(--primary-color);
-             color: white;
-             box-shadow: none;
-        }
-         [data-theme="dark"] .header-button.btn-primary { color: var(--bg-dark); }
-         .header-button.btn-primary:hover {
-            opacity: 0.9;
-            box-shadow: none;
-            color: white;
-         }
-         [data-theme="dark"] .header-button.btn-primary:hover { color: var(--bg-dark); }
-        .header-button#themeToggle { font-size: 1.1rem; padding: 0 14px;}
+    .dark-mode .navbar {
+      background: rgba(0, 0, 0, 0.8) !important;
+    }
 
-        .container { max-width: 1200px; margin: auto; }
+    .navbar-brand {
+      font-weight: 700;
+      font-size: 1.6rem;
+      color: var(--primary) !important;
+    }
 
-        .folder {
-            background: var(--bg);
-            border-radius: var(--border-radius-lg);
-            box-shadow: var(--shadow);
-            margin-bottom: 2.5rem;
-            overflow: hidden;
-        }
+    .dark-mode .navbar-brand {
+      color: var(--primary-dark) !important;
+    }
 
-        .folder-header {
-            padding: 1.25rem 1.75rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            user-select: none;
-        }
-        .folder-header h6 { margin: 0 0 0 1rem; font-size: 1.2rem; font-weight: 600; color: var(--text-color);}
-        .folder-icon { font-size: 1.5rem; color: var(--icon-color); }
-        .toggle-icon { transition: transform var(--transition-speed) ease-in-out; }
-        .folder-header.is-open .toggle-icon { transform: rotate(90deg); }
+    .btn,
+    input[type="search"] {
+      border-radius: 30px;
+    }
 
-        .folder-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s ease-in-out; }
-        .folder-content.is-open { grid-template-rows: 1fr; }
-        .folder-items-wrapper { overflow: hidden; }
-        .folder-items { padding: 0 1.75rem 1.75rem; }
-        
-        .bookmarks-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
+    input[type="search"] {
+      padding-left: 15px;
+    }
 
-        .bookmark-card {
-            background: var(--bg);
-            border-radius: var(--border-radius-md);
-            box-shadow: var(--shadow);
-            transition: box-shadow var(--transition-speed);
-            opacity: 0; 
-            animation: fadeIn 0.5s ease forwards;
-            overflow: hidden;
-        }
-        .bookmark-card:hover { box-shadow: var(--shadow-inset); }
-        .bookmark-link {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            color: var(--text-color);
-            text-decoration: none;
-            font-weight: 500;
-            padding: 1.1rem;
-            flex-grow: 1;
-            overflow: hidden;
-        }
-        .bookmark-link:hover { color: var(--primary-color); }
-        .bookmark-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .favicon { width: 22px; height: 22px; border-radius: 4px; flex-shrink: 0; }
-        .card-actions {
-            display: flex;
-            padding: 0 0.75rem 0.75rem;
-            justify-content: flex-end;
-            gap: 0.5rem;
-        }
-        .action-icon {
-            cursor: pointer;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            color: var(--text-color);
-            box-shadow: var(--shadow);
-            transition: all var(--transition-speed);
-        }
-        .action-icon:hover {
-            box-shadow: var(--shadow-inset);
-            color: var(--primary-color);
-        }
-        
-        #loading-message { text-align: center; font-size: 1.2rem; padding: 4rem; color: var(--text-color); }
+    #dark-mode-toggle {
+      cursor: pointer;
+      color: var(--primary);
+    }
 
-        .modal-content {
-            background: var(--bg);
-            color: var(--text-color);
-            border-radius: var(--border-radius-lg);
-            border: none;
-            box-shadow: var(--shadow);
-        }
-        .modal-header, .modal-footer { border-color: rgba(0,0,0,0.1); }
-        [data-theme="dark"] .modal-header, [data-theme="dark"] .modal-footer { border-color: rgba(255,255,255,0.1); }
-        .modal-body .form-label { font-weight: 500; }
-        .modal-body .form-control, .modal-body .form-select {
-            background: var(--bg);
-            border: none;
-            box-shadow: var(--shadow-inset);
-            color: var(--text-color);
-            border-radius: var(--border-radius-md);
-            padding: 0.85rem 1rem;
-        }
-        .modal-body .form-control:focus, .modal-body .form-select:focus {
-            box-shadow: var(--shadow-inset);
-            color: var(--text-color);
-            outline: none;
-        }
-        [data-theme="dark"] .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
-        .modal-footer .btn-secondary, .modal-footer .btn-primary {
-            min-width: 100px;
-            font-weight: 600;
-            padding: 0.6rem 1rem;
-            border-radius: var(--border-radius-md);
-            border: none;
-        }
-        .modal-footer .btn-secondary { background: var(--bg); box-shadow: var(--shadow); color: var(--text-color); }
-        .modal-footer .btn-secondary:hover { box-shadow: var(--shadow-inset); }
-        .modal-footer .btn-primary { background: var(--primary-color); color: white; box-shadow: none; }
-        [data-theme="dark"] .modal-footer .btn-primary { color: var(--bg-dark); }
-        
-        [data-theme="dark"] .modal-body .form-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23bdc3c7' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e"); }
-        #folderList li { background-color: var(--bg); border-radius: var(--border-radius-md); box-shadow: var(--shadow); border: none; padding: 0.8rem 1rem; }
-        
-        /* RESPONSIVE DESIGN ADJUSTMENTS */
-        @media (max-width: 992px) {
-            .bookmarks-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-        }
+    .dark-mode #dark-mode-toggle {
+      color: var(--primary-dark);
+    }
 
-        @media (max-width: 768px) {
-            body { padding-top: 170px; }
-            .header-controls { flex-wrap: wrap; gap: 15px; padding: 15px; top: 15px;}
-            .search-bar { width: 100%; order: 1; flex-basis: 100%; }
-            .auth-buttons { order: 2; display: flex; flex-grow: 1; justify-content: flex-start; }
-            .header-button#themeToggle { order: 3; }
-            .folder-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-            .bookmarks-grid { grid-template-columns: 1fr; }
-        }
-         @media (max-width: 480px) {
-             .auth-buttons { gap: 8px !important; }
-             .header-button { padding: 0 12px; height: 40px; }
-             .auth-buttons .header-button:not(.btn-primary) { flex-grow: 1; }
-         }
-    </style>
+    #app {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+    }
+
+    .card {
+      background: var(--card-light);
+      border: none;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      backdrop-filter: blur(4px);
+    }
+
+    .dark-mode .card {
+      background: var(--card-dark);
+      color: var(--text-dark);
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-sm {
+      padding: 0.3rem 1rem;
+    }
+
+    .dark-mode .btn-outline-secondary {
+      border-color: #aaa;
+      color: #aaa;
+    }
+
+    .dark-mode .btn-outline-secondary:hover {
+      background-color: #333;
+    }
+
+    .form-control:focus {
+      box-shadow: none;
+      border-color: var(--primary);
+    }
+
+    .dark-mode .form-control:focus {
+      border-color: var(--primary-dark);
+    }
+  </style>
 </head>
-<body data-theme="light">
 
-    <header class="header-controls">
-        <div class="search-bar">
-            <input id="searchInput" type="text" placeholder="Search bookmarks..." />
-        </div>
-        <div class="auth-buttons d-flex gap-2">
-            <button class="header-button btn-primary add-bookmark-btn" style="display: none;">Add Bookmark</button>
-            <button class="header-button manage-folders-btn" style="display: none;">Manage Folders</button>
-            <button class="header-button btn-primary signin-btn" style="display: none;">Sign In</button>
-            <button class="header-button signout-btn" style="display: none;">Sign Out</button>
-        </div>
-        <button id="themeToggle" class="header-button" title="Toggle Theme">
-            <i id="themeIcon" class="bi bi-moon-stars-fill"></i>
-        </button>
-    </header>
+<body onload="loadTheme()">
 
-    <main class="container">
-        <div id="appContainer">
-            <div id="loading-message">Initializing...</div>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg bg-white shadow fixed-top mx-3 mt-2">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Pradeep Simba</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
+        <form class="d-flex w-100 me-3" id="search-books">
+          <input class="form-control me-2" type="search" placeholder="Search..." name="search">
+          <button class="btn btn-outline-primary" type="submit"><i class="fa fa-search"></i></button>
+        </form>
+        <div id="dark-mode-toggle" onclick="toggleTheme()" class="fs-5">
+          <i id="theme-icon" class="fas fa-moon"></i>
         </div>
-    </main>
-    
-    <!-- Add/Edit Bookmark Modal -->
-    <div class="modal fade" id="addOrEditBookModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addOrEditBookModalLabel">Add New Bookmark</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="bookForm">
-                        <input type="hidden" id="bookId">
-                        <div class="mb-3">
-                            <label for="bookTitle" class="form-label">Title*</label>
-                            <input type="text" class="form-control" id="bookTitle" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="bookLink" class="form-label">URL*</label>
-                            <input type="url" class="form-control" id="bookLink" placeholder="https://example.com" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="bookFolderSelect" class="form-label">Folder</label>
-                            <select class="form-select" id="bookFolderSelect"></select>
-                        </div>
-                         <div class="mb-3">
-                            <label for="bookDescription" class="form-label">Description</label>
-                            <textarea class="form-control" id="bookDescription" rows="2"></textarea>
-                        </div>
-                        <div class="modal-footer border-0 p-0 pt-3">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save Bookmark</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
-    
-    <!-- Manage Folders Modal -->
-    <div class="modal fade" id="manageFoldersModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Manage Folders</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <h6 class="mb-2">Add New Folder</h6>
-                    <form id="addFolderForm" class="d-flex gap-2 mb-4">
-                        <input type="text" class="form-control" id="newFolderName" placeholder="New folder name" required>
-                        <button type="submit" class="btn btn-primary">Add</button>
-                    </form>
-                    <h6 class="mb-3">Existing Folders</h6>
-                    <ul class="list-group gap-3" id="folderList">
-                        <!-- Folder list will be populated by JS -->
-                    </ul>
-                </div>
+  </nav>
+
+  <!-- Content -->
+  <div class="container my-4">
+    <div id="app"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    function toggleTheme() {
+      const element = document.body;
+      const icon = document.getElementById("theme-icon");
+      const theme = element.classList.contains("dark-mode") ? "light" : "dark";
+
+      // Toggle the dark-mode class
+      element.classList.toggle("dark-mode");
+
+      // Save theme in localStorage
+      localStorage.setItem("theme", theme);
+
+      // Change the theme icon
+      icon.className = theme === "dark" ? "fas fa-sun" : "fas fa-moon";
+
+      // Change primary color based on the theme
+      const root = document.documentElement;
+      if (theme === "dark") {
+        root.style.setProperty("--primary", "var(--primary-dark)");
+      } else {
+        root.style.setProperty("--primary", "var(--primary-light)");
+      }
+    }
+
+    function loadTheme() {
+      const theme = localStorage.getItem("theme") || "light";
+      if (theme === "dark") {
+        document.body.classList.add("dark-mode");
+        document.getElementById("theme-icon").className = "fas fa-sun";
+        document.documentElement.style.setProperty("--primary", "var(--primary-dark)");
+      } else {
+        document.documentElement.style.setProperty("--primary", "var(--primary-light)");
+      }
+    }
+
+    let books = [];
+
+    fetch("https://raw.githubusercontent.com/Jeevasimba/files/main/data/data.json")
+      .then(res => res.json())
+      .then(data => {
+        books = data;
+        render(books);
+      });
+
+    const render = (data) => {
+      const app = document.getElementById('app');
+      app.innerHTML = data.map(book => `
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title fw-semibold">${book.title}</h5>
+            <p class="card-text">${book.description}</p>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+              <a href="${book.link}" target="_blank" class="btn btn-primary btn-sm">Answer Link</a>
+              <a href="${book.reflinka}" target="_blank" class="btn btn-outline-secondary btn-sm">Ref Link 1</a>
+              <a href="${book.reflinkb}" target="_blank" class="btn btn-outline-secondary btn-sm">Ref Link 2</a>
+              <a href="${book.reflinkc}" target="_blank" class="btn btn-outline-secondary btn-sm">Ref Link 3</a>
             </div>
+          </div>
         </div>
-    </div>
+      `).join('');
+    }
 
-    <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-   <script>
-        // --- GLOBAL VARIABLES & CONFIG ---
-        const CLIENT_ID = '683702979714-b9p8hkaqrrk2g12nbv3jqkbsf5mlmi59.apps.googleusercontent.com'; 
-        const API_KEY = 'AIzaSyBF-k8OwJlDftANtaR8kiX5KIRym4Zlvp8'; 
-        const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
-        const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-        const APP_FOLDER_NAME = "Pradeep Simba App Data";
-        const JSON_FILE_NAME = "bookmarks.json";
-        const DEFAULT_JSON_CONTENT = JSON.stringify({ folders: [], books: [] });
-        const FALLBACK_ICON_SRC = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iY3VycmVudENvbG9yIiBjbGFzcz0iYmkgYmktbGluay00NWRlZyIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBkPSJNNC43MTUgNi41NDIgMy4zNDMgNy45MTRhMyAzIDAgMSAwIDQuMjQzIDQuMjQzbDEuODI4LTEuODI5QTMgMyAwIDAgMCA4LjU4NiA1LjVMOCA2LjA4NmExIDEgMCAwIDAtLjE1NC4xOTkyIDIgMiAwIDAgMSAuODYxIDMuMzM3TDYuODggMTEuNDVhMiAyIDAgMSAxLTIuODMtMi44M2wuNzkzLS43OTJhNCA0IDAgMCAxLS4xMjgtMS4yODd6Ii8+PHBhdGggZD0iTTYuNTg2IDQuNjcyQTMgMyAwIDAgMCA3LjQxNCA5LjVsLjc3NS0uNzc2YTIgMiAwIDAgMS0uODk2LTMuMzQ2TDkuMTIgMy41NWExIDIgMiAwIDEgMSAyLjgzIDIuODNsLS43OTMuNzkyYy4xMTIuNDIuMTU1LjgzNC4xMjggMS4yODdsMS4zNzItMS4zNzJhMyAzIDAgMSAwLTQuMjQzLTQuMjQzeiIvPjwvc3ZnPg==';
+    // old search method
+    // document.addEventListener('submit', function(event) {
+    //   event.preventDefault();
+    //   const searchTerm = event.target.elements['search'].value.toLowerCase().trim();
+    //   const tokens = searchTerm.split(' ').filter(Boolean);
+    //   if (tokens.length) {
+    //     const searchRegex = new RegExp(tokens.join('|'), 'gim');
+    //     const filtered = books.filter(book =>
+    //       Object.values(book).join(' ').toLowerCase().match(searchRegex)
+    //     );
+    //     render(filtered);
+    //   }
+    // });
 
-        let tokenClient;
-        let gapiInited = false, gisInited = false, domLoaded = false;
-        let books = [], folders = [];
-        let GOOGLE_DRIVE_JSON_FILE_ID = '';
+    // new search method
+    document.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const searchTerm = event.target.elements['search'].value.toLowerCase().trim();
+        const tokens = searchTerm.split(' ').filter(Boolean);
 
-        let signinButton, signoutButton, addBookmarkButton, manageFoldersButton, appContainer, loadingMessage, searchInput, themeToggle;
-        let addOrEditBookModal, manageFoldersModal, bookForm, addFolderForm;
-
-        // --- CORE INITIALIZATION ---
-        document.addEventListener('DOMContentLoaded', () => {
-            signinButton = document.querySelector('.signin-btn');
-            signoutButton = document.querySelector('.signout-btn');
-            addBookmarkButton = document.querySelector('.add-bookmark-btn');
-            manageFoldersButton = document.querySelector('.manage-folders-btn');
-            appContainer = document.getElementById('appContainer');
-            loadingMessage = document.getElementById('loading-message');
-            searchInput = document.getElementById('searchInput');
-            themeToggle = document.getElementById('themeToggle');
-            bookForm = document.getElementById('bookForm');
-            addFolderForm = document.getElementById('addFolderForm');
-            addOrEditBookModal = new bootstrap.Modal(document.getElementById('addOrEditBookModal'));
-            manageFoldersModal = new bootstrap.Modal(document.getElementById('manageFoldersModal'));
-
-            themeToggle.addEventListener('click', toggleTheme);
-            signinButton.addEventListener('click', handleAuthClick);
-            signoutButton.addEventListener('click', handleSignoutClick);
-            addBookmarkButton.addEventListener('click', () => openBookModal('add'));
-            manageFoldersButton.addEventListener('click', openManageFoldersModal);
-            bookForm.addEventListener('submit', submitBookForm);
-            addFolderForm.addEventListener('submit', handleAddFolder);
-            searchInput.addEventListener('input', debounce(filterAndRender, 300));
-
-            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-            applyTheme(savedTheme);
-            updateLoadingMessage('Please sign in to continue.');
-            
-            domLoaded = true;
-            checkIfAllReady();
+        if (tokens.length) {
+            const filtered = books.filter(book => {
+            const text = (book.title).toLowerCase();
+            return tokens.every(token => text.includes(token));
+            });
+            render(filtered);
+        }
         });
 
-        // --- AUTHENTICATION & DATA LOADING ---
-        function gapiLoaded() { gapi.load('client', initializeGapiClient); }
-        async function initializeGapiClient() {
-            try {
-                await gapi.client.init({ apiKey: API_KEY, discoveryDocs: DISCOVERY_DOCS });
-                gapiInited = true;
-                checkIfAllReady();
-            } catch (error) { console.error("GAPI Init Error:", error); updateLoadingMessage('Error initializing. Please refresh.', true); }
-        }
-        function gisLoaded() {
-            tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CLIENT_ID, scope: SCOPES, callback: handleTokenResponse });
-            gisInited = true;
-            checkIfAllReady();
-        }
-        function checkIfAllReady() {
-            if (gapiInited && gisInited && domLoaded) {
-                signinButton.style.display = 'block';
-                if (gapi.client.getToken()) { handleAuthSuccess(); }
-            }
-        }
-        function handleAuthClick() {
-            if (gapi.client.getToken() === null) tokenClient.requestAccessToken({ prompt: 'consent' });
-            else tokenClient.requestAccessToken({ prompt: '' });
-        }
-        async function handleTokenResponse(resp) {
-            if (resp.error) return;
-            gapi.client.setToken(resp);
-            await handleAuthSuccess();
-        }
-        function handleSignoutClick() {
-            const token = gapi.client.getToken();
-            if (token) {
-                google.accounts.oauth2.revoke(token.access_token, () => {
-                    gapi.client.setToken(null);
-                    signinButton.style.display = 'block';
-                    signoutButton.style.display = 'none';
-                    addBookmarkButton.style.display = 'none';
-                    manageFoldersButton.style.display = 'none';
-                    appContainer.innerHTML = '';
-                    updateLoadingMessage('Please sign in to load your bookmarks.');
-                    books = [];
-                    folders = [];
-                });
-            }
-        }
-        async function handleAuthSuccess() {
-            signinButton.style.display = 'none';
-            signoutButton.style.display = 'block';
-            addBookmarkButton.style.display = 'block';
-            manageFoldersButton.style.display = 'block';
-            updateLoadingMessage('Locating your data in Google Drive...');
-            await checkAndCreateJsonFile();
-        }
-
-        // --- GOOGLE DRIVE FILE MANAGEMENT ---
-        async function checkAndCreateAppDataFolder() {
-            let folderId = localStorage.getItem('app_folder_id');
-            if (folderId) {
-                try {
-                    const res = await gapi.client.drive.files.get({ fileId: folderId, fields: 'id, trashed' });
-                    if (res.result && !res.result.trashed) return folderId;
-                } catch (error) { /* ID is invalid, proceed to find/create */ }
-            }
-            const listRes = await gapi.client.drive.files.list({ q: `name = '${APP_FOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`, fields: 'files(id)' });
-            if (listRes.result.files && listRes.result.files.length > 0) {
-                folderId = listRes.result.files[0].id;
-            } else {
-                const createRes = await gapi.client.drive.files.create({ resource: { name: APP_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }, fields: 'id' });
-                folderId = createRes.result.id;
-            }
-            localStorage.setItem('app_folder_id', folderId);
-            return folderId;
-        }
-        
-        async function checkAndCreateJsonFile() {
-             try {
-                const appFolderId = await checkAndCreateAppDataFolder();
-                const res = await gapi.client.drive.files.list({ q: `'${appFolderId}' in parents and name = '${JSON_FILE_NAME}' and trashed = false`, fields: 'files(id)' });
-                let fileId;
-                if (res.result.files && res.result.files.length > 0) {
-                    fileId = res.result.files[0].id;
-                } else {
-                    const metadata = { name: JSON_FILE_NAME, mimeType: 'application/json', parents: [appFolderId] };
-                    const uploadRes = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
-                        method: 'POST',
-                        headers: new Headers({ "Authorization": "Bearer " + gapi.client.getToken().access_token }),
-                        body: createMultipartBody(metadata, DEFAULT_JSON_CONTENT)
-                    });
-                    const result = await uploadRes.json();
-                    fileId = result.id;
-                }
-                GOOGLE_DRIVE_JSON_FILE_ID = fileId;
-                await loadDataFromDrive(fileId);
-            } catch (error) { console.error(error); updateLoadingMessage('Error setting up Google Drive files. Please check console and refresh.', true); }
-        }
-
-        async function loadDataFromDrive(fileId) {
-            if (!fileId) return;
-            try {
-                updateLoadingMessage('Loading bookmarks...');
-                const response = await gapi.client.drive.files.get({ fileId: fileId, alt: 'media' });
-
-                let parsedData;
-                if (response.body && response.body.trim().length > 0) {
-                    try {
-                        parsedData = JSON.parse(response.body);
-                    } catch (e) {
-                        console.error("Failed to parse JSON, defaulting to empty state.", e);
-                        parsedData = { folders: [], books: [] };
-                    }
-                } else {
-                    parsedData = { folders: [], books: [] };
-                }
-
-                if (Array.isArray(parsedData)) {
-                    updateLoadingMessage('Migrating data to new format...');
-                    const uniqueFolders = [...new Set(parsedData.map(b => b.folder).filter(Boolean))];
-                    folders = uniqueFolders.sort();
-                    books = parsedData;
-                    await saveDataToDrive(); 
-                    updateLoadingMessage('Migration complete!');
-                } else {
-                    folders = parsedData.folders || [];
-                    books = parsedData.books || []; 
-                }
-                render(); 
-            } catch (error) {
-                console.error("Error loading data from Drive:", error);
-                folders = [];
-                books = [];
-                render();
-                updateLoadingMessage('Could not read your data file. It may be corrupted.', true);
-            }
-        }
-
-        async function saveDataToDrive() {
-            if (!GOOGLE_DRIVE_JSON_FILE_ID) return;
-            try {
-                const dataToSave = { folders, books };
-                const jsonContent = JSON.stringify(dataToSave, null, 2);
-                await fetch(`https://www.googleapis.com/upload/drive/v3/files/${GOOGLE_DRIVE_JSON_FILE_ID}?uploadType=media`, {
-                    method: 'PATCH',
-                    headers: { 'Authorization': 'Bearer ' + gapi.client.getToken().access_token, 'Content-Type': 'application/json' },
-                    body: jsonContent
-                });
-            } catch (error) { console.error(error); alert('Error saving data!'); }
-        }
-
-        // --- BOOKMARK CRUD ---
-        function generateUniqueId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 9); }
-
-        function openBookModal(mode, bookId = null) {
-            bookForm.reset();
-            document.getElementById('bookId').value = '';
-            const modalTitle = document.getElementById('addOrEditBookModalLabel');
-            
-            const folderSelect = document.getElementById('bookFolderSelect');
-            folderSelect.innerHTML = '<option value="Uncategorized">Uncategorized</option>';
-            folders.sort().forEach(folder => {
-                const option = document.createElement('option');
-                option.value = folder;
-                option.textContent = folder;
-                folderSelect.appendChild(option);
-            });
-
-            if (mode === 'edit') {
-                const bookToEdit = books.find(b => b.id === bookId);
-                if (bookToEdit) {
-                    modalTitle.textContent = 'Edit Bookmark';
-                    document.getElementById('bookId').value = bookToEdit.id;
-                    document.getElementById('bookTitle').value = bookToEdit.title || '';
-                    document.getElementById('bookDescription').value = bookToEdit.description || '';
-                    document.getElementById('bookLink').value = bookToEdit.link || '';
-                    folderSelect.value = bookToEdit.folder || 'Uncategorized';
-                }
-            } else {
-                modalTitle.textContent = 'Add New Bookmark';
-            }
-            addOrEditBookModal.show();
-        }
-
-        async function submitBookForm(event) {
-            event.preventDefault();
-            const bookId = document.getElementById('bookId').value;
-            const bookData = {
-                title: document.getElementById('bookTitle').value.trim(),
-                link: document.getElementById('bookLink').value.trim(),
-                description: document.getElementById('bookDescription').value.trim(),
-                folder: document.getElementById('bookFolderSelect').value,
-            };
-
-            if (bookId) {
-                const index = books.findIndex(b => b.id === bookId);
-                if (index !== -1) books[index] = { ...books[index], ...bookData };
-            } else {
-                bookData.id = generateUniqueId();
-                books.push(bookData);
-            }
-
-            await saveDataToDrive();
-            render();
-            addOrEditBookModal.hide();
-        }
-
-        async function deleteBook(bookId) {
-            event.stopPropagation();
-            if (confirm("Are you sure you want to delete this bookmark?")) {
-                books = books.filter(b => b.id !== bookId);
-                await saveDataToDrive();
-                render();
-            }
-        }
-
-        // --- FOLDER MANAGEMENT ---
-        function openManageFoldersModal() {
-            const folderList = document.getElementById('folderList');
-            folderList.innerHTML = '';
-            if (folders.length === 0) {
-                folderList.innerHTML = '<p class="text-center text-muted">No custom folders created yet.</p>';
-            } else {
-                folders.sort().forEach(folder => {
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
-                    li.textContent = folder;
-                    
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'btn-close';
-                    deleteBtn.onclick = () => handleDeleteFolder(folder);
-                    
-                    li.appendChild(deleteBtn);
-                    folderList.appendChild(li);
-                });
-            }
-            manageFoldersModal.show();
-        }
-        
-        async function handleAddFolder(event) {
-            event.preventDefault();
-            const folderNameInput = document.getElementById('newFolderName');
-            const newFolderName = folderNameInput.value.trim();
-
-            if (newFolderName && newFolderName.toLowerCase() !== 'uncategorized' && !folders.find(f => f.toLowerCase() === newFolderName.toLowerCase())) {
-                folders.push(newFolderName);
-                await saveDataToDrive();
-                folderNameInput.value = '';
-                openManageFoldersModal();
-            } else if (!newFolderName) {
-                alert("Folder name cannot be empty.");
-            } else {
-                alert(`The folder name "${newFolderName}" is reserved or already exists.`);
-            }
-        }
-
-        async function handleDeleteFolder(folderNameToDelete) {
-            if (confirm(`Are you sure you want to delete the "${folderNameToDelete}" folder?\nAll bookmarks in this folder will be moved to "Uncategorized".`)) {
-                books.forEach(book => {
-                    if (book.folder === folderNameToDelete) {
-                        book.folder = 'Uncategorized';
-                    }
-                });
-                folders = folders.filter(f => f !== folderNameToDelete);
-                
-                await saveDataToDrive();
-                openManageFoldersModal();
-                render();
-            }
-        }
-
-        // --- RENDERING & UI ---
-        const render = (dataToRender = books, isSearch = false) => {
-            if (loadingMessage) loadingMessage.style.display = 'none';
-
-            if (!isSearch && books.length === 0 && folders.length === 0) {
-                appContainer.innerHTML = `<div id="loading-message">No bookmarks yet. Click "Add Bookmark" to start!</div>`;
-                return;
-            }
-            if (isSearch && dataToRender.length === 0) {
-                appContainer.innerHTML = `<div id="loading-message">No bookmarks match your search.</div>`;
-                return;
-            }
-
-            const displayMap = {};
-
-            dataToRender.forEach(book => {
-                const folderName = book.folder || 'Uncategorized';
-                if (!displayMap[folderName]) displayMap[folderName] = [];
-                displayMap[folderName].push(book);
-            });
-
-            if (!isSearch) {
-                folders.forEach(f => {
-                    if (!displayMap[f]) displayMap[f] = [];
-                });
-            }
-            
-            const sortedFolderNames = Object.keys(displayMap).sort((a, b) => {
-                if (a === 'Uncategorized' && Object.keys(displayMap).length > 1) return 1;
-                if (b === 'Uncategorized' && Object.keys(displayMap).length > 1) return -1;
-                return a.localeCompare(b);
-            });
-            
-            if (sortedFolderNames.length === 0) {
-                appContainer.innerHTML = `<div id="loading-message">${isSearch ? 'No bookmarks match your search.' : 'No bookmarks yet. Click "Add Bookmark" to start!'}</div>`;
-                return;
-            }
-
-            appContainer.innerHTML = sortedFolderNames.map(folderName => {
-                const bookmarksInFolder = displayMap[folderName];
-                const bookmarksHTML = bookmarksInFolder.map((item, index) => {
-                    const faviconSrc = getFaviconUrl(item.link);
-                    return `
-                     <div class="bookmark-card-wrapper">
-                        <a href="${item.link}" target="_blank" class="bookmark-card" title="${item.description || item.title}" style="animation-delay: ${index * 30}ms;">
-                           <div class="bookmark-link">
-                                <img src="${faviconSrc}" alt="" class="favicon" loading="lazy" onerror="this.onerror=null; this.src='${FALLBACK_ICON_SRC}';">
-                                <span class="bookmark-name">${item.title}</span>
-                           </div>
-                        </a>
-                        <div class="card-actions">
-                            <span class="action-icon" title="Copy Link" onclick="copyToClipboard('${item.link || ''}', this)"><i class="bi bi-clipboard"></i></span>
-                            <span class="action-icon" title="Edit" onclick="openBookModal('edit', '${item.id}')"><i class="bi bi-pencil-square"></i></span>
-                            <span class="action-icon" title="Delete" onclick="deleteBook('${item.id}')"><i class="bi bi-trash3"></i></span>
-                        </div>
-                     </div>
-                    `;
-                }).join('').replace(/<div class="bookmark-card-wrapper">/g, '<div class="bookmark-card">').replace(/<\/div> <!-- wrapper end -->/g, '</div>');
-                // The above replace is a bit of a hack to get the structure right for the bookmark-card with actions outside the link
-                 const bookmarksHTML_Corrected = bookmarksInFolder.map((item, index) => {
-                    const faviconSrc = getFaviconUrl(item.link);
-                    return `
-                        <div class="bookmark-card" style="animation-delay: ${index * 25}ms;">
-                             <a href="${item.link}" target="_blank" class="bookmark-link" title="${item.description || item.title}">
-                                <img src="${faviconSrc}" alt="" class="favicon" loading="lazy" onerror="this.onerror=null; this.src='${FALLBACK_ICON_SRC}';">
-                                <span class="bookmark-name">${item.title}</span>
-                            </a>
-                            <div class="card-actions">
-                                <span class="action-icon" title="Copy Link" onclick="copyToClipboard('${item.link || ''}', this)"><i class="bi bi-clipboard"></i></span>
-                                <span class="action-icon" title="Edit" onclick="openBookModal('edit', '${item.id}')"><i class="bi bi-pencil-square"></i></span>
-                                <span class="action-icon" title="Delete" onclick="deleteBook('${item.id}')"><i class="bi bi-trash3"></i></span>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-                const emptyFolderHTML = `<p class="text-center text-muted p-3 m-0">This folder is empty.</p>`;
-
-                return `
-                    <div class="folder">
-                        <div class="folder-header">
-                            <div style="display: flex; align-items: center;">
-                                <i class="bi bi-folder-fill folder-icon"></i>
-                                <h6>${folderName}</h6>
-                            </div>
-                            <i class="bi bi-chevron-right toggle-icon"></i>
-                        </div>
-                        <div class="folder-content">
-                            <div class="folder-items-wrapper"><div class="folder-items">
-                                ${bookmarksHTML_Corrected.length > 0 ? `<div class="bookmarks-grid">${bookmarksHTML_Corrected}</div>` : emptyFolderHTML}
-                            </div></div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            appContainer.querySelectorAll('.folder-header').forEach(header => {
-                const content = header.nextElementSibling;
-                const folderName = header.querySelector('h6').textContent;
-                if (isSearch || (displayMap[folderName] && displayMap[folderName].length > 0)) {
-                    header.classList.add('is-open');
-                    content.classList.add('is-open');
-                }
-                header.addEventListener('click', () => {
-                    header.classList.toggle('is-open');
-                    content.classList.toggle('is-open');
-                });
-            });
-        };
-        
-        function filterAndRender() {
-            const query = searchInput.value.toLowerCase().trim();
-            if (!query) return render();
-            const filteredBooks = books.filter(book => 
-                (book.title?.toLowerCase() || '').includes(query) ||
-                (book.description?.toLowerCase() || '').includes(query) ||
-                (book.folder?.toLowerCase() || '').includes(query) ||
-                (book.link?.toLowerCase() || '').includes(query)
-            );
-            render(filteredBooks, true);
-        }
-        
-        function getFaviconUrl(url) {
-            if (!url) return FALLBACK_ICON_SRC;
-            try {
-                const domain = new URL(url).hostname;
-                return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-            } catch (e) {
-                return FALLBACK_ICON_SRC;
-            }
-        }
-
-        function applyTheme(theme) {
-            document.body.setAttribute('data-theme', theme);
-            document.getElementById('themeIcon').className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
-            localStorage.setItem('theme', theme);
-        }
-        function toggleTheme() { applyTheme(document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
-        function debounce(func, delay) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => func.apply(this, a), delay) }; }
-        async function copyToClipboard(text, element) {
-            event.stopPropagation();
-            if (!text || !navigator.clipboard) return;
-            try {
-                await navigator.clipboard.writeText(text);
-                const icon = element.querySelector('i');
-                icon.className = 'bi bi-check-lg';
-                setTimeout(() => { icon.className = 'bi bi-clipboard'; }, 1500);
-            } catch (err) { console.error('Failed to copy: ', err); }
-        }
-        function updateLoadingMessage(text, isError = false) {
-            loadingMessage.textContent = text;
-            loadingMessage.style.color = isError ? '#e74c3c' : 'inherit';
-            loadingMessage.style.display = 'block';
-        }
-        function createMultipartBody(metadata, fileContent) {
-            const boundary = '-------314159265358979323846';
-            const delimiter = `\r\n--${boundary}\r\n`;
-            const close_delim = `\r\n--${boundary}--`;
-            let body = delimiter + 'Content-Type: application/json; charset=UTF-8\r\n\r\n' + JSON.stringify(metadata) + delimiter + 'Content-Type: application/json\r\n\r\n' + fileContent + close_delim;
-            return new Blob([body], { type: 'multipart/related; boundary=' + boundary });
-        }
-    </script>
-
-    <!-- Google API Scripts -->
-    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+  </script>
 </body>
+
 </html>
