@@ -1,0 +1,4106 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="utf-8">
+  <title>File Viewer — CSV / XLSX / DOCX</title>
+  <meta name="description" content="Enterprise-grade in-browser viewer and editor for CSV, XLSX, and DOCX files. No upload, no server, fully private.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
+  <meta name="application-name" content="File Viewer">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="File Viewer">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon" href="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%2296%22%20fill%3D%22%232563eb%22%2F%3E%3Cg%20transform%3D%22translate(128%2C96)%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%2218%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M192%200%20H32%20a32%2032%200%200%200-32%2032%20v256%20a32%2032%200%200%200%2032%2032%20h192%20a32%2032%200%200%200%2032-32%20V96%20Z%22%2F%3E%3Cpolyline%20points%3D%22192%200%20192%2096%20256%2096%22%2F%3E%3Cline%20x1%3D%2264%22%20y1%3D%22160%22%20x2%3D%22192%22%20y2%3D%22160%22%2F%3E%3Cline%20x1%3D%2264%22%20y1%3D%22208%22%20x2%3D%22192%22%20y2%3D%22208%22%2F%3E%3Cline%20x1%3D%2264%22%20y1%3D%22256%22%20x2%3D%22128%22%20y2%3D%22256%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%2296%22%20fill%3D%22%232563eb%22%2F%3E%3Cg%20transform%3D%22translate(128%2C96)%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%2218%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M192%200%20H32%20a32%2032%200%200%200-32%2032%20v256%20a32%2032%200%200%200%2032%2032%20h192%20a32%2032%200%200%200%2032-32%20V96%20Z%22%2F%3E%3Cpolyline%20points%3D%22192%200%20192%2096%20256%2096%22%2F%3E%3Cline%20x1%3D%2264%22%20y1%3D%22160%22%20x2%3D%22192%22%20y2%3D%22160%22%2F%3E%3Cline%20x1%3D%2264%22%20y1%3D%22208%22%20x2%3D%22192%22%20y2%3D%22208%22%2F%3E%3Cline%20x1%3D%2264%22%20y1%3D%22256%22%20x2%3D%22128%22%20y2%3D%22256%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+  <link rel="manifest" id="manifest-link">
+  <script>
+    /*
+     * PWA bootstrap — must run synchronously in <head> so:
+     *  1. The manifest is attached before Chrome evaluates installability.
+     *  2. `beforeinstallprompt` is captured even if it fires before App boots.
+     */
+    (function () {
+      var origin = location.origin
+      var pathname = location.pathname || '/'
+      var scopePath = pathname.replace(/[^/]+$/, '') || '/'
+      // When the manifest is served from a blob: URL its own URL becomes the
+      // base for resolving relative paths — which fails (blob URLs aren't
+      // valid bases for manifest URLs). Use absolute URLs throughout.
+      var startUrl = origin + pathname
+      var scopeUrl = origin + scopePath
+      var iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">' +
+        '<rect width="512" height="512" rx="96" fill="#2563eb"/>' +
+        '<g transform="translate(128,96)" fill="none" stroke="white" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">' +
+        '<path d="M192 0 H32 a32 32 0 0 0-32 32 v256 a32 32 0 0 0 32 32 h192 a32 32 0 0 0 32-32 V96 Z"/>' +
+        '<polyline points="192 0 192 96 256 96"/>' +
+        '<line x1="64" y1="160" x2="192" y2="160"/>' +
+        '<line x1="64" y1="208" x2="192" y2="208"/>' +
+        '<line x1="64" y1="256" x2="128" y2="256"/>' +
+        '</g></svg>'
+      var iconUri = 'data:image/svg+xml;utf8,' + encodeURIComponent(iconSvg)
+      var manifest = {
+        name: 'File Viewer — CSV, XLSX, DOCX, Video',
+        short_name: 'File Viewer',
+        description: 'Local-first viewer & editor for CSV, XLSX, DOCX, and video files.',
+        id: startUrl,
+        start_url: startUrl,
+        scope: scopeUrl,
+        display: 'standalone',
+        display_override: ['window-controls-overlay', 'standalone', 'minimal-ui', 'browser'],
+        orientation: 'any',
+        background_color: '#f8fafc',
+        theme_color: '#2563eb',
+        lang: 'en',
+        dir: 'ltr',
+        categories: ['productivity', 'utilities', 'business'],
+        icons: [
+          { src: iconUri, sizes: 'any',     type: 'image/svg+xml', purpose: 'any' },
+          { src: iconUri, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
+          { src: iconUri, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
+        ],
+        file_handlers: [{
+          action: startUrl,
+          accept: {
+            'text/csv': ['.csv'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+            'application/vnd.ms-excel': ['.xls'],
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+            'video/mp4':  ['.mp4', '.m4v'],
+            'video/webm': ['.webm'],
+            'video/ogg':  ['.ogg', '.ogv'],
+            'video/quicktime': ['.mov'],
+            'video/x-matroska': ['.mkv'],
+            'video/x-msvideo': ['.avi']
+          },
+          launch_type: 'single-client'
+        }],
+        shortcuts: [{
+          name: 'Open file',
+          short_name: 'Open',
+          description: 'Open a CSV, XLSX, DOCX, or video file',
+          url: startUrl
+        }]
+      }
+      try {
+        var blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' })
+        document.getElementById('manifest-link').href = URL.createObjectURL(blob)
+      } catch (e) { /* manifest link unavailable */ }
+
+      // Pre-capture the install prompt event so it isn't lost before App boots.
+      window.__deferredInstallPrompt = null
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault()
+        window.__deferredInstallPrompt = e
+      })
+      window.addEventListener('appinstalled', function () {
+        window.__deferredInstallPrompt = null
+      })
+    })()
+  </script>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@13/dist/handsontable.full.min.css">
+  <style>
+    /* ════════════════════════════════════════════════════════════════
+       DESIGN TOKENS — light theme (default)
+       ════════════════════════════════════════════════════════════════ */
+    :root {
+      --bg: #f8fafc;
+      --bg-elevated: #ffffff;
+      --surface: #ffffff;
+      --surface-2: #f1f5f9;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --text-subtle: #94a3b8;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-soft: #eff6ff;
+      --primary-contrast: #ffffff;
+      --danger: #dc2626;
+      --danger-soft: #fef2f2;
+      --danger-border: #fecaca;
+      --danger-dark: #7f1d1d;
+      --success: #16a34a;
+      --success-soft: #f0fdf4;
+      --success-border: #bbf7d0;
+      --warning: #d97706;
+      --warning-soft: #fffbeb;
+      --warning-border: #fde68a;
+      --info: #0284c7;
+      --info-soft: #f0f9ff;
+      --info-border: #bae6fd;
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.06);
+      --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(15, 23, 42, 0.06);
+      --shadow-xl: 0 24px 48px rgba(15, 23, 42, 0.16), 0 8px 16px rgba(15, 23, 42, 0.08);
+      --radius-sm: 4px;
+      --radius: 6px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 18px;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 24px;
+      --space-6: 32px;
+      --duration-fast: 120ms;
+      --duration: 180ms;
+      --duration-slow: 280ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      /* Handsontable's frozen-row/column overlays use z-index 101-103,
+         so the header (which hosts dropdown menus) must sit above them. */
+      --z-tabs: 1;
+      --z-header: 200;
+      --z-overlay: 300;
+      --z-modal: 400;
+      --z-toast: 500;
+      --z-loading: 600;
+      color-scheme: light;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       DESIGN TOKENS — dark theme
+       ════════════════════════════════════════════════════════════════ */
+    [data-theme="dark"] {
+      --bg: #0b1220;
+      --bg-elevated: #111a2d;
+      --surface: #131c30;
+      --surface-2: #1a2440;
+      --border: #1f2c47;
+      --border-strong: #2a3a5c;
+      --text: #e8edf5;
+      --text-muted: #93a1b8;
+      --text-subtle: #6b7892;
+      --primary: #60a5fa;
+      --primary-hover: #93c5fd;
+      --primary-soft: rgba(96, 165, 250, 0.12);
+      --primary-contrast: #0b1220;
+      --danger: #f87171;
+      --danger-soft: rgba(248, 113, 113, 0.10);
+      --danger-border: rgba(248, 113, 113, 0.35);
+      --danger-dark: #fecaca;
+      --success: #4ade80;
+      --success-soft: rgba(74, 222, 128, 0.10);
+      --success-border: rgba(74, 222, 128, 0.35);
+      --warning: #fbbf24;
+      --warning-soft: rgba(251, 191, 36, 0.10);
+      --warning-border: rgba(251, 191, 36, 0.35);
+      --info: #38bdf8;
+      --info-soft: rgba(56, 189, 248, 0.10);
+      --info-border: rgba(56, 189, 248, 0.35);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+      --shadow-xl: 0 30px 60px rgba(0, 0, 0, 0.6), 0 12px 24px rgba(0, 0, 0, 0.4);
+      color-scheme: dark;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       RESET / BASE
+       ════════════════════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body { height: 100%; margin: 0; }
+
+    body {
+      display: grid;
+      grid-template-rows: auto auto auto 1fr auto auto;
+      grid-template-areas: "header" "subheader" "findbar" "content" "tabs" "status";
+      height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow: hidden;
+    }
+
+    button { font: inherit; color: inherit; }
+    input { font: inherit; color: inherit; }
+
+    [hidden] { display: none !important; }
+
+    :focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+    a.visually-hidden:focus {
+      position: fixed !important;
+      top: 8px; left: 8px;
+      width: auto !important;
+      height: auto !important;
+      padding: 8px 16px !important;
+      margin: 0 !important;
+      clip: auto !important;
+      clip-path: none !important;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--primary);
+      border-radius: var(--radius);
+      z-index: 100;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Custom scrollbars (WebKit) */
+    ::-webkit-scrollbar { width: 12px; height: 12px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: 8px;
+      border: 3px solid var(--bg);
+    }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-subtle); }
+    ::-webkit-scrollbar-corner { background: transparent; }
+
+    /* ════════════════════════════════════════════════════════════════
+       HEADER
+       ════════════════════════════════════════════════════════════════ */
+    #app-header {
+      grid-area: header;
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: 10px var(--space-4);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      z-index: var(--z-header);
+      position: relative;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .brand svg { width: 22px; height: 22px; color: var(--primary); }
+
+    .file-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .file-info-divider { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; }
+
+    #file-name {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #file-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .unsaved-dot {
+      width: 8px; height: 8px;
+      background: var(--warning);
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 3px var(--warning-soft);
+    }
+
+    .actions { display: flex; align-items: center; gap: var(--space-2); flex-shrink: 0; }
+
+    /* ─── Buttons ─────────────────────────────────────────── */
+    .btn {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background var(--duration-fast) var(--ease),
+                  border-color var(--duration-fast) var(--ease),
+                  color var(--duration-fast) var(--ease),
+                  transform var(--duration-fast) var(--ease);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .btn svg { width: 14px; height: 14px; }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--primary-contrast);
+      border: 1px solid var(--primary);
+    }
+    .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+    }
+    .btn-secondary:hover { background: var(--surface-2); border-color: var(--text-muted); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid transparent;
+      padding: 6px 8px;
+    }
+    .btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+      border: 1px solid var(--danger);
+    }
+    .btn-danger:hover { background: var(--danger-dark); border-color: var(--danger-dark); }
+
+    .btn-icon {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid transparent;
+    }
+    .btn-icon:hover { background: var(--surface-2); color: var(--text); }
+    .btn-icon svg { width: 16px; height: 16px; }
+
+    .kbd {
+      display: inline-block;
+      padding: 1px 6px;
+      font-family: ui-monospace, 'SF Mono', Consolas, Monaco, monospace;
+      font-size: 11px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-strong);
+      border-bottom-width: 2px;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+    }
+
+    /* ─── Menu (recent files, theme) ──────────────────────── */
+    .menu-anchor { position: relative; }
+
+    .menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      min-width: 240px;
+      max-width: min(380px, calc(100vw - 24px));
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      padding: 6px;
+      z-index: 30;
+      transform-origin: top right;
+      animation: menuPop var(--duration) var(--ease);
+    }
+
+    @keyframes menuPop {
+      from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .menu-section {
+      padding: 8px 10px 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-subtle);
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      min-width: 0;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: var(--radius);
+      background: transparent;
+      color: var(--text);
+      font-size: 13px;
+      text-align: left;
+      cursor: pointer;
+      transition: background var(--duration-fast) var(--ease);
+    }
+    .menu-item:hover { background: var(--surface-2); }
+    .menu-item svg { width: 14px; height: 14px; color: var(--text-muted); flex-shrink: 0; }
+    .menu-item-label {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .menu-item .menu-meta {
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--text-subtle);
+      flex-shrink: 0;
+    }
+    .menu-item[aria-checked="true"] { color: var(--primary); }
+    .menu-item[aria-checked="true"] svg { color: var(--primary); }
+    .menu-divider { height: 1px; background: var(--border); margin: 4px 0; }
+    .menu-empty {
+      padding: 12px 10px;
+      font-size: 12px;
+      color: var(--text-subtle);
+      text-align: center;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       TABLE TOOLBAR
+       ════════════════════════════════════════════════════════════════ */
+    #table-toolbar {
+      grid-area: subheader;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-1);
+      padding: 6px var(--space-3);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .toolbar-group { display: inline-flex; align-items: center; gap: 2px; }
+    .toolbar-divider { width: 1px; height: 20px; background: var(--border); margin: 0 6px; }
+
+    .toolbar-btn {
+      font-size: 12.5px;
+      font-weight: 500;
+      padding: 5px 10px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background var(--duration-fast) var(--ease),
+                  color var(--duration-fast) var(--ease),
+                  border-color var(--duration-fast) var(--ease);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .toolbar-btn svg { width: 13px; height: 13px; }
+    .toolbar-btn:hover { background: var(--surface-2); border-color: var(--border-strong); }
+    .toolbar-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .toolbar-btn.danger:hover {
+      background: var(--danger-soft);
+      border-color: var(--danger-border);
+      color: var(--danger);
+    }
+
+    .qty-input {
+      font-size: 12.5px;
+      width: 52px;
+      padding: 5px 4px 5px 8px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      text-align: center;
+      -moz-appearance: textfield;
+    }
+    .qty-input::-webkit-outer-spin-button,
+    .qty-input::-webkit-inner-spin-button { opacity: 1; height: 18px; }
+    .qty-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-soft);
+    }
+
+    .toolbar-hint {
+      font-size: 11.5px;
+      color: var(--text-subtle);
+      margin-left: auto;
+      padding-right: 4px;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       FIND BAR
+       ════════════════════════════════════════════════════════════════ */
+    #find-bar {
+      grid-area: findbar;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 8px var(--space-3);
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      animation: slideDown var(--duration) var(--ease);
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .find-field {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+    }
+    .find-field:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-soft);
+    }
+    .find-field input {
+      flex: 1;
+      min-width: 0;
+      padding: 4px 0;
+      border: 0;
+      background: transparent;
+      outline: none;
+      font-size: 13px;
+    }
+    .find-field svg { width: 14px; height: 14px; color: var(--text-subtle); flex-shrink: 0; }
+
+    .find-count {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      min-width: 60px;
+      text-align: right;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       CONTENT AREA
+       ════════════════════════════════════════════════════════════════ */
+    #content {
+      grid-area: content;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg);
+    }
+    #content > .view { position: absolute; inset: 0; }
+    #content > .view[hidden] { display: none !important; }
+
+    #empty-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-5);
+    }
+
+    .empty-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      width: min(460px, 100%);
+      padding: 48px var(--space-6);
+      background: var(--bg-elevated);
+      border: 2px dashed var(--border-strong);
+      border-radius: var(--radius-xl);
+      text-align: center;
+      box-shadow: var(--shadow-md);
+      animation: fadeUp var(--duration-slow) var(--ease);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .empty-card svg.upload-icon {
+      width: 56px;
+      height: 56px;
+      color: var(--primary);
+      opacity: 0.85;
+    }
+    .empty-card h2 { margin: 0; font-size: 18px; font-weight: 600; }
+    .empty-card p { margin: 0; color: var(--text-muted); }
+
+    .file-type-chips { display: flex; gap: var(--space-2); margin-top: 6px; }
+    .file-type-chips span {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 4px 8px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      border-radius: var(--radius);
+    }
+
+    .shortcut-hint { margin-top: 4px; font-size: 12px; color: var(--text-subtle); }
+
+    .text-link-btn {
+      background: none;
+      border: 0;
+      padding: 4px 8px;
+      margin-top: 2px;
+      color: var(--primary);
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      border-radius: var(--radius);
+      transition: background var(--duration-fast) var(--ease);
+    }
+    .text-link-btn:hover { background: var(--primary-soft); text-decoration: underline; }
+
+    #input-file {
+      position: absolute;
+      width: 1px; height: 1px; padding: 0; margin: -1px; border: 0;
+      clip: rect(0, 0, 0, 0);
+      clip-path: inset(50%);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    #handsontable-container { width: 100%; height: 100%; }
+    #handsontable-container.handsontable { height: 100% !important; }
+
+    #docx-container {
+      overflow: auto;
+      background: var(--border);
+      padding: var(--space-5) 0;
+    }
+    #docx-container .docx-wrapper {
+      background: transparent;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-4);
+    }
+    #docx-container section.docx {
+      background: #fff;
+      box-shadow: var(--shadow-lg);
+      margin: 0;
+    }
+
+    .docx-error {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: var(--space-4) 20px;
+      background: var(--danger-soft);
+      border: 1px solid var(--danger-border);
+      border-left: 4px solid var(--danger);
+      border-radius: var(--radius-md);
+      color: var(--danger-dark);
+      font-size: 13px;
+    }
+
+    /* Video viewer */
+    #video-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(ellipse at center, #1a2240 0%, #050810 75%);
+      overflow: hidden;
+      padding: 24px;
+      position: relative;
+    }
+    #video-container video {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      display: block;
+      outline: none;
+      border-radius: var(--radius-lg);
+      box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.55),
+        0 10px 24px rgba(0, 0, 0, 0.35);
+      background: #000;
+      animation: videoFadeIn var(--duration-slow) var(--ease);
+    }
+    @keyframes videoFadeIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .video-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 13px;
+      pointer-events: none;
+    }
+    .video-loading .spinner {
+      border-color: rgba(255, 255, 255, 0.15);
+      border-top-color: rgba(255, 255, 255, 0.85);
+    }
+
+    .video-error {
+      max-width: 540px;
+      margin: 0 24px;
+      padding: var(--space-4) 20px;
+      background: var(--danger-soft);
+      border: 1px solid var(--danger-border);
+      border-left: 4px solid var(--danger);
+      border-radius: var(--radius-md);
+      color: var(--danger-dark);
+      font-size: 13px;
+    }
+
+    /* Video toolbar — shares the subheader grid row with #table-toolbar */
+    #video-toolbar {
+      grid-area: subheader;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-1);
+      padding: 6px var(--space-3);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .toolbar-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      padding: 0 4px 0 6px;
+    }
+    .speed-select {
+      font: inherit;
+      font-size: 12.5px;
+      padding: 5px 26px 5px 10px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: var(--surface)
+        url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")
+        no-repeat right 6px center / 14px;
+      color: var(--text);
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+    .speed-select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-soft);
+    }
+
+    .toolbar-btn[aria-pressed="true"] {
+      background: var(--primary-soft);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       SHEET TABS
+       ════════════════════════════════════════════════════════════════ */
+    #sheet-tabs {
+      grid-area: tabs;
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: flex-end;
+      gap: 2px;
+      padding: 4px var(--space-2) 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      overflow-x: auto;
+      z-index: var(--z-tabs);
+    }
+
+    .sheet-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12.5px;
+      padding: 5px 8px 5px var(--space-3);
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: var(--radius) var(--radius) 0 0;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background var(--duration-fast) var(--ease),
+                  color var(--duration-fast) var(--ease);
+      white-space: nowrap;
+      user-select: none;
+    }
+    .sheet-tab:hover { background: var(--surface-2); color: var(--text); }
+    .sheet-tab[aria-selected="true"] {
+      background: var(--bg-elevated);
+      border-color: var(--border);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .sheet-tab-label {
+      padding: 1px 0;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sheet-tab-close {
+      font-size: 14px;
+      line-height: 1;
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 0;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--text-subtle);
+      cursor: pointer;
+      opacity: 0;
+      transition: background var(--duration-fast) var(--ease),
+                  opacity var(--duration-fast) var(--ease),
+                  color var(--duration-fast) var(--ease);
+    }
+    .sheet-tab:hover .sheet-tab-close,
+    .sheet-tab[aria-selected="true"] .sheet-tab-close,
+    .sheet-tab:focus-within .sheet-tab-close { opacity: 1; }
+    .sheet-tab-close:hover { background: var(--danger-border); color: var(--danger); }
+
+    .sheet-tab-add {
+      font-size: 16px;
+      line-height: 1;
+      width: 28px;
+      height: 28px;
+      margin-left: 4px;
+      padding: 0;
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--radius);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background var(--duration-fast) var(--ease),
+                  color var(--duration-fast) var(--ease),
+                  border-color var(--duration-fast) var(--ease);
+    }
+    .sheet-tab-add:hover {
+      background: var(--primary-soft);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       STATUS BAR
+       ════════════════════════════════════════════════════════════════ */
+    #status-bar {
+      grid-area: status;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 6px 14px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .status-item { display: inline-flex; align-items: center; gap: 5px; }
+    .status-item strong { color: var(--text); font-weight: 600; }
+    .status-item-right { margin-left: auto; }
+    .status-dot {
+      width: 6px; height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+    }
+    .status-dot.saving { background: var(--warning); animation: pulse 1.2s ease-in-out infinite; }
+    .status-dot.error { background: var(--danger); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       DROP OVERLAY (global)
+       ════════════════════════════════════════════════════════════════ */
+    #drop-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: var(--z-overlay);
+      background: rgba(37, 99, 235, 0.10);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      animation: fadeIn var(--duration) var(--ease);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .drop-overlay-card {
+      padding: var(--space-6) 56px;
+      background: var(--bg-elevated);
+      border: 3px dashed var(--primary);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      color: var(--primary);
+      animation: popIn var(--duration) var(--ease);
+    }
+    .drop-overlay-card svg { width: 48px; height: 48px; }
+    .drop-overlay-card p { margin: 0; font-size: 16px; font-weight: 600; }
+
+    @keyframes popIn {
+      from { transform: scale(0.92); }
+      to { transform: scale(1); }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       MODAL SYSTEM
+       ════════════════════════════════════════════════════════════════ */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: var(--z-modal);
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-4);
+      animation: fadeIn var(--duration) var(--ease);
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      background: var(--bg-elevated);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalIn var(--duration-slow) var(--ease);
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .modal-backdrop.leaving { animation: fadeOut 160ms var(--ease) forwards; }
+    .modal-backdrop.leaving .modal { animation: modalOut 160ms var(--ease) forwards; }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+    @keyframes modalOut {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to { opacity: 0; transform: translateY(6px) scale(0.98); }
+    }
+
+    .modal-wide { max-width: 640px; }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4) 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-icon {
+      width: 36px; height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .modal-icon svg { width: 20px; height: 20px; }
+    .modal-icon.info { background: var(--info-soft); color: var(--info); }
+    .modal-icon.success { background: var(--success-soft); color: var(--success); }
+    .modal-icon.warning { background: var(--warning-soft); color: var(--warning); }
+    .modal-icon.danger { background: var(--danger-soft); color: var(--danger); }
+    .modal-icon.primary { background: var(--primary-soft); color: var(--primary); }
+
+    .modal-title {
+      flex: 1;
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      width: 32px; height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      border-radius: var(--radius);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .modal-close:hover { background: var(--surface-2); color: var(--text); }
+
+    .modal-body {
+      padding: var(--space-4) 20px;
+      overflow: auto;
+      font-size: 14px;
+    }
+    .modal-body p { margin: 0 0 var(--space-3); }
+    .modal-body p:last-child { margin-bottom: 0; }
+    .modal-body .modal-input {
+      width: 100%;
+      margin-top: var(--space-2);
+      padding: 9px var(--space-3);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 14px;
+    }
+    .modal-body .modal-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-soft);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-2);
+      padding: var(--space-3) 20px var(--space-4);
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    /* Shortcut list inside modal */
+    .shortcut-list {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px var(--space-4);
+      align-items: center;
+    }
+    .shortcut-list dt {
+      color: var(--text);
+      font-weight: 500;
+      margin: 0;
+    }
+    .shortcut-list dd { margin: 0; display: flex; gap: 4px; justify-content: flex-end; }
+
+    /* ════════════════════════════════════════════════════════════════
+       TOAST SYSTEM
+       ════════════════════════════════════════════════════════════════ */
+    #toast-root {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: var(--z-toast);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 380px;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--info);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      animation: toastIn var(--duration) var(--ease);
+      font-size: 13px;
+    }
+    .toast.leaving { animation: toastOut var(--duration) var(--ease) forwards; }
+    .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.warning { border-left-color: var(--warning); }
+
+    .toast-icon {
+      flex-shrink: 0;
+      width: 18px; height: 18px;
+      color: var(--info);
+    }
+    .toast.success .toast-icon { color: var(--success); }
+    .toast.error .toast-icon { color: var(--danger); }
+    .toast.warning .toast-icon { color: var(--warning); }
+
+    .toast-content { flex: 1; min-width: 0; }
+    .toast-title { font-weight: 600; margin-bottom: 2px; }
+    .toast-message { color: var(--text-muted); }
+
+    .toast-close {
+      flex-shrink: 0;
+      width: 22px; height: 22px;
+      border: 0;
+      background: transparent;
+      color: var(--text-subtle);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .toast-close:hover { background: var(--surface-2); color: var(--text); }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(20px); }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       LOADING OVERLAY
+       ════════════════════════════════════════════════════════════════ */
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: var(--z-loading);
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn var(--duration) var(--ease);
+    }
+
+    .loading-card {
+      background: var(--bg-elevated);
+      padding: var(--space-5) var(--space-6);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-xl);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-3);
+      min-width: 220px;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #loading-message {
+      margin: 0;
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       RESPONSIVE
+       ════════════════════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      #app-header { gap: var(--space-2); padding: 8px 10px; }
+      .brand span { display: none; }
+      .file-info-divider { display: none; }
+      #file-meta { display: none; }
+      .btn { padding: 7px 10px; }
+      .btn-label { display: none; }
+      #table-toolbar { padding: 6px 8px; }
+      .toolbar-btn { padding: 5px 8px; font-size: 12px; }
+      .toolbar-hint { display: none; }
+      .toolbar-divider { margin: 0 4px; }
+      #status-bar { padding: 6px 10px; gap: 10px; font-size: 11.5px; }
+      .menu { right: -4px; min-width: 260px; }
+    }
+    @media (max-width: 480px) {
+      .modal { max-width: calc(100vw - 24px); }
+      .empty-card { padding: 32px 20px; }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       REDUCED MOTION
+       ════════════════════════════════════════════════════════════════ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      .spinner { animation-duration: 0.8s !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <a class="visually-hidden" href="#content">Skip to content</a>
+
+  <header id="app-header" role="banner">
+    <div class="brand" aria-hidden="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      <span>File Viewer</span>
+    </div>
+
+    <div class="file-info" id="file-info" hidden>
+      <span class="file-info-divider" aria-hidden="true"></span>
+      <span id="file-name"></span>
+      <span class="unsaved-dot" id="unsaved-dot" hidden title="Unsaved changes" aria-label="Unsaved changes"></span>
+      <span id="file-meta"></span>
+    </div>
+
+    <nav class="actions" aria-label="File actions">
+      <button type="button" class="btn btn-secondary" id="open-btn" aria-label="Open file" title="Open file (Ctrl+O)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        </svg>
+        <span class="btn-label">Open</span>
+      </button>
+
+      <button type="button" class="btn-icon" id="link-btn" hidden aria-label="Link file for auto-save" title="Link file for auto-save">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        </svg>
+      </button>
+
+      <div class="menu-anchor">
+        <button type="button" class="btn-icon" id="recent-btn" aria-label="Recent files" aria-haspopup="menu" aria-expanded="false" title="Recent files">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </button>
+        <div class="menu" id="recent-menu" role="menu" hidden></div>
+      </div>
+
+      <div class="menu-anchor">
+        <button type="button" class="btn-icon" id="theme-btn" aria-label="Theme" aria-haspopup="menu" aria-expanded="false" title="Theme">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </button>
+        <div class="menu" id="theme-menu" role="menu" hidden></div>
+      </div>
+
+      <button type="button" class="btn-icon" id="help-btn" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </button>
+
+      <button type="button" class="btn btn-secondary" id="install-btn" hidden aria-label="Install app" title="Install as desktop app">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3v12"/>
+          <polyline points="8 11 12 15 16 11"/>
+          <path d="M5 19h14"/>
+        </svg>
+        <span class="btn-label">Install</span>
+      </button>
+
+      <button type="button" class="btn btn-secondary" id="download-csv-btn" hidden title="Download active sheet as CSV">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <span class="btn-label">CSV</span>
+      </button>
+      <button type="button" class="btn btn-primary" id="download-xlsx-btn" hidden title="Download all sheets as XLSX (Ctrl+S)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <span class="btn-label">XLSX</span>
+      </button>
+      <button type="button" class="btn-icon" id="close-btn" hidden aria-label="Close file" title="Close file">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </nav>
+  </header>
+
+  <div id="table-toolbar" role="toolbar" aria-label="Table actions" hidden>
+    <div class="toolbar-group" role="group" aria-label="Row actions">
+      <input type="number" class="qty-input" id="qty-row" value="1" min="1" max="10000" aria-label="Rows to add">
+      <button type="button" class="toolbar-btn" id="btn-add-row" title="Add N rows below the selected row (or at the end)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="6" rx="1"/>
+          <rect x="3" y="14" width="18" height="6" rx="1" stroke-dasharray="3 2"/>
+        </svg>
+        Add Row
+      </button>
+      <button type="button" class="toolbar-btn danger" id="btn-del-row" title="Delete the selected row(s)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="6" rx="1"/>
+          <line x1="6" y1="17" x2="18" y2="17"/>
+        </svg>
+        Delete Row
+      </button>
+    </div>
+
+    <div class="toolbar-divider" aria-hidden="true"></div>
+
+    <div class="toolbar-group" role="group" aria-label="Column actions">
+      <input type="number" class="qty-input" id="qty-col" value="1" min="1" max="1000" aria-label="Columns to add">
+      <button type="button" class="toolbar-btn" id="btn-add-col" title="Add N columns to the right of the selected column (or at the end)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="6" height="18" rx="1"/>
+          <rect x="13" y="3" width="6" height="18" rx="1" stroke-dasharray="3 2"/>
+        </svg>
+        Add Column
+      </button>
+      <button type="button" class="toolbar-btn danger" id="btn-del-col" title="Delete the selected column(s)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="6" height="18" rx="1"/>
+          <line x1="14" y1="12" x2="20" y2="12"/>
+        </svg>
+        Delete Column
+      </button>
+      <button type="button" class="toolbar-btn" id="btn-rename-col" title="Rename the selected column">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Rename Column
+      </button>
+    </div>
+
+    <div class="toolbar-divider" aria-hidden="true"></div>
+
+    <div class="toolbar-group" role="group" aria-label="History">
+      <button type="button" class="toolbar-btn" id="btn-undo" title="Undo (Ctrl+Z)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="9 14 4 9 9 4"/>
+          <path d="M20 20v-7a4 4 0 0 0-4-4H4"/>
+        </svg>
+        Undo
+      </button>
+      <button type="button" class="toolbar-btn" id="btn-redo" title="Redo (Ctrl+Shift+Z)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="15 14 20 9 15 4"/>
+          <path d="M4 20v-7a4 4 0 0 1 4-4h12"/>
+        </svg>
+        Redo
+      </button>
+    </div>
+
+    <div class="toolbar-divider" aria-hidden="true"></div>
+
+    <div class="toolbar-group" role="group" aria-label="Search">
+      <button type="button" class="toolbar-btn" id="btn-find" title="Find (Ctrl+F)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        Find
+      </button>
+    </div>
+
+    <span class="toolbar-hint">Right-click for more options</span>
+  </div>
+
+  <div id="video-toolbar" role="toolbar" aria-label="Video controls" hidden>
+    <div class="toolbar-group" role="group" aria-label="Playback">
+      <button type="button" class="toolbar-btn" id="vbtn-play" aria-label="Play / pause" title="Play / pause (Space)">
+        <svg id="vbtn-play-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        <span id="vbtn-play-label">Play</span>
+      </button>
+      <button type="button" class="toolbar-btn" id="vbtn-back10" title="Back 10s (Shift + ←)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/>
+          <polyline points="3 3 3 8 8 8"/>
+        </svg>
+        −10s
+      </button>
+      <button type="button" class="toolbar-btn" id="vbtn-fwd10" title="Forward 10s (Shift + →)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12a9 9 0 1 1-3-6.7L21 8"/>
+          <polyline points="21 3 21 8 16 8"/>
+        </svg>
+        +10s
+      </button>
+    </div>
+
+    <div class="toolbar-divider" aria-hidden="true"></div>
+
+    <div class="toolbar-group" role="group" aria-label="Speed">
+      <span class="toolbar-label">Speed</span>
+      <select class="speed-select" id="vctrl-speed" aria-label="Playback speed">
+        <option value="0.25">0.25×</option>
+        <option value="0.5">0.5×</option>
+        <option value="0.75">0.75×</option>
+        <option value="1" selected>1×</option>
+        <option value="1.25">1.25×</option>
+        <option value="1.5">1.5×</option>
+        <option value="1.75">1.75×</option>
+        <option value="2">2×</option>
+      </select>
+    </div>
+
+    <div class="toolbar-divider" aria-hidden="true"></div>
+
+    <div class="toolbar-group" role="group" aria-label="Options">
+      <button type="button" class="toolbar-btn" id="vbtn-loop" aria-pressed="false" title="Toggle loop (L)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="17 1 21 5 17 9"/>
+          <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+          <polyline points="7 23 3 19 7 15"/>
+          <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+        </svg>
+        Loop
+      </button>
+      <button type="button" class="toolbar-btn" id="vbtn-mute" title="Mute (M)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+        </svg>
+        <span id="vbtn-mute-label">Mute</span>
+      </button>
+      <button type="button" class="toolbar-btn" id="vbtn-pip" title="Picture-in-Picture" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6"/>
+          <rect x="13" y="13" width="9" height="7" rx="1"/>
+        </svg>
+        PiP
+      </button>
+      <button type="button" class="toolbar-btn" id="vbtn-snapshot" title="Save current frame as PNG">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+        Snapshot
+      </button>
+      <button type="button" class="toolbar-btn" id="vbtn-fullscreen" title="Fullscreen (F)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
+          <path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
+          <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
+          <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+        </svg>
+        Fullscreen
+      </button>
+    </div>
+
+    <span class="toolbar-hint">Space play · ← → seek · ↑ ↓ volume · F fullscreen</span>
+  </div>
+
+  <div id="find-bar" role="search" hidden>
+    <div class="find-field">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="find-input" placeholder="Find in sheet…" aria-label="Find in sheet" autocomplete="off">
+    </div>
+    <span class="find-count" id="find-count" aria-live="polite"></span>
+    <button type="button" class="btn-icon" id="find-close" aria-label="Close find" title="Close find (Esc)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <main id="content" tabindex="-1">
+    <div id="empty-state" class="view" role="region" aria-label="Empty state">
+      <div class="empty-card">
+        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="12" y1="18" x2="12" y2="12"/>
+          <polyline points="9 15 12 12 15 15"/>
+        </svg>
+        <h2>Drop your file here</h2>
+        <p>Files are processed locally — nothing is uploaded.</p>
+        <label for="input-file" class="btn btn-primary">Browse files</label>
+        <input type="file" id="input-file" accept=".csv,.xlsx,.xls,.docx,.mp4,.webm,.ogg,.ogv,.m4v,.mov,.mkv,.avi,video/*" aria-label="Choose a file to open">
+        <button type="button" class="text-link-btn" id="open-url-btn">Or open from URL…</button>
+        <div class="file-type-chips" aria-hidden="true">
+          <span>CSV</span>
+          <span>XLSX</span>
+          <span>DOCX</span>
+          <span>VIDEO</span>
+        </div>
+        <p class="shortcut-hint"><span class="kbd">Ctrl</span> + <span class="kbd">O</span> to browse · <span class="kbd">Ctrl</span> + <span class="kbd">L</span> to paste URL</p>
+      </div>
+    </div>
+
+    <div id="handsontable-container" class="view" hidden aria-label="Spreadsheet"></div>
+    <div id="docx-container" class="view" hidden aria-label="Document"></div>
+    <div id="video-container" class="view" hidden aria-label="Video player"></div>
+  </main>
+
+  <div id="sheet-tabs" role="tablist" aria-label="Sheets" hidden></div>
+
+  <footer id="status-bar" role="status" aria-live="polite" hidden>
+    <span class="status-item"><strong id="status-rows">0</strong> rows</span>
+    <span class="status-item"><strong id="status-cols">0</strong> columns</span>
+    <span class="status-item" id="status-selection" hidden></span>
+    <span class="status-item" id="status-sheet" hidden>Sheet: <strong id="status-sheet-name"></strong></span>
+    <span class="status-item status-item-right" id="status-save" hidden>
+      <span class="status-dot" id="status-save-dot"></span>
+      <span id="status-save-text">Saved</span>
+    </span>
+  </footer>
+
+  <div id="drop-overlay" hidden aria-hidden="true">
+    <div class="drop-overlay-card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      <p>Release to open file</p>
+    </div>
+  </div>
+
+  <div id="modal-root"></div>
+  <div id="toast-root" role="region" aria-label="Notifications" aria-live="polite"></div>
+  <div id="loading-overlay" hidden role="status" aria-live="polite">
+    <div class="loading-card">
+      <div class="spinner" aria-hidden="true"></div>
+      <p id="loading-message">Loading…</p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@13/dist/handsontable.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docx-preview@0.3.3/dist/docx-preview.min.js"></script>
+
+  <script>
+  /*
+   * ═══════════════════════════════════════════════════════════════════
+   *  File Viewer — Enterprise Edition
+   *  Single-file architecture, organized into discrete services:
+   *
+   *    Config         — central constants & feature flags
+   *    Logger         — structured logging
+   *    EventBus       — pub/sub for cross-module coordination
+   *    Utils          — pure helpers (DOM, formatting, sanitization)
+   *    Storage        — typed localStorage wrapper
+   *    Notify         — toast notifications
+   *    Modal          — promise-based alert/confirm/prompt + custom
+   *    ThemeManager   — light/dark/system theme
+   *    Keyboard       — global keyboard shortcuts
+   *    FileService    — read, validate, detect MIME / extension
+   *    Download       — CSV / XLSX export, formula sanitization
+   *    SheetManager   — CRUD over the workbook (sheets + cache)
+   *    TableService   — Handsontable lifecycle, selection helpers
+   *    Search         — find-in-table via HoT's search plugin
+   *    RecentFiles    — metadata-only history in localStorage
+   *    Autosave       — debounced snapshot + restore prompt
+   *    DragDrop       — window-wide file drop overlay
+   *    UI             — chrome (header, toolbar, status, tabs, menus)
+   *    App            — orchestration, wiring, lifecycle
+   * ═══════════════════════════════════════════════════════════════════
+   */
+  (function () {
+    'use strict'
+
+    /* ═════════════════════════════ CONFIG ═════════════════════════════ */
+    const Config = Object.freeze({
+      VERSION: '2.0.0',
+      MAX_FILE_BYTES: 100 * 1024 * 1024,         // 100 MB hard cap
+      AUTOSAVE_MAX_BYTES: 4 * 1024 * 1024,       // skip autosave above this
+      AUTOSAVE_DEBOUNCE_MS: 1500,
+      AUTOSAVE_KEY: 'fileviewer:autosave:v2',
+      RECENT_FILES_KEY: 'fileviewer:recent:v2',
+      THEME_KEY: 'fileviewer:theme:v2',
+      VIDEO_PREFS_KEY: 'fileviewer:video-prefs:v1',
+      RECENT_FILES_MAX: 8,
+      TOAST_DURATION_MS: 4200,
+      TOAST_DURATION_LONG_MS: 6500,
+      TOAST_MAX_VISIBLE: 5,
+      EXTENSIONS: ['.csv', '.xlsx', '.xls', '.docx'],
+      ROW_QTY_MAX: 10000,
+      COL_QTY_MAX: 1000,
+      EXCEL_SHEET_NAME_INVALID: /[\\/?*\[\]:]/,
+      EXCEL_SHEET_NAME_MAX: 31,
+      CSV_INJECTION_REGEX: /^[=+\-@\t\r]/,
+    })
+
+    /* ═════════════════════════════ LOGGER ═════════════════════════════ */
+    const Logger = (() => {
+      const fmt = (level, args) => ['[FileViewer]', '[' + level + ']', ...args]
+      return {
+        info:  (...a) => console.log(...fmt('info',  a)),
+        warn:  (...a) => console.warn(...fmt('warn',  a)),
+        error: (...a) => console.error(...fmt('error', a)),
+        debug: (...a) => { if (window.__DEBUG__) console.debug(...fmt('debug', a)) },
+      }
+    })()
+
+    /* ═════════════════════════════ EVENT BUS ══════════════════════════ */
+    class EventBus {
+      #map = new Map()
+      on(event, handler) {
+        if (!this.#map.has(event)) this.#map.set(event, new Set())
+        this.#map.get(event).add(handler)
+        return () => this.off(event, handler)
+      }
+      off(event, handler) { this.#map.get(event)?.delete(handler) }
+      emit(event, payload) {
+        const set = this.#map.get(event)
+        if (!set) return
+        for (const fn of set) {
+          try { fn(payload) }
+          catch (err) { Logger.error('listener error for', event, err) }
+        }
+      }
+    }
+
+    /* ═════════════════════════════ UTILS ══════════════════════════════ */
+    const Utils = {
+      $: (id) => document.getElementById(id),
+
+      el(tag, attrs = {}, ...children) {
+        const node = document.createElement(tag)
+        for (const [k, v] of Object.entries(attrs)) {
+          if (v == null || v === false) continue
+          if (k === 'class') node.className = v
+          else if (k === 'dataset') Object.assign(node.dataset, v)
+          else if (k.startsWith('on') && typeof v === 'function') {
+            node.addEventListener(k.slice(2).toLowerCase(), v)
+          }
+          else if (k === 'style' && typeof v === 'string') node.setAttribute('style', v)
+          // Properties that must use assignment for proper behavior:
+          else if (k === 'value' || k === 'checked' || k === 'disabled' || k === 'hidden') node[k] = v
+          else node.setAttribute(k, v === true ? '' : String(v))
+        }
+        for (const child of children.flat()) {
+          if (child == null || child === false) continue
+          node.appendChild(typeof child === 'string' ? document.createTextNode(child) : child)
+        }
+        return node
+      },
+
+      svg(paths, opts = {}) {
+        const ns = 'http://www.w3.org/2000/svg'
+        const svg = document.createElementNS(ns, 'svg')
+        svg.setAttribute('viewBox', opts.viewBox || '0 0 24 24')
+        svg.setAttribute('fill', 'none')
+        svg.setAttribute('stroke', 'currentColor')
+        svg.setAttribute('stroke-width', opts.strokeWidth || '2')
+        svg.setAttribute('stroke-linecap', 'round')
+        svg.setAttribute('stroke-linejoin', 'round')
+        svg.setAttribute('aria-hidden', 'true')
+        for (const d of paths) {
+          const path = document.createElementNS(ns, 'path')
+          path.setAttribute('d', d)
+          svg.appendChild(path)
+        }
+        return svg
+      },
+
+      debounce(fn, ms) {
+        let t
+        const wrapped = function (...args) {
+          clearTimeout(t)
+          t = setTimeout(() => fn.apply(this, args), ms)
+        }
+        wrapped.cancel = () => clearTimeout(t)
+        wrapped.flush = function (...args) { clearTimeout(t); fn.apply(this, args) }
+        return wrapped
+      },
+
+      throttle(fn, ms) {
+        let last = 0, t
+        return function (...args) {
+          const now = Date.now()
+          const rem = ms - (now - last)
+          if (rem <= 0) { clearTimeout(t); last = now; fn.apply(this, args) }
+          else { clearTimeout(t); t = setTimeout(() => { last = Date.now(); fn.apply(this, args) }, rem) }
+        }
+      },
+
+      formatBytes(n) {
+        if (!n) return '0 B'
+        if (n < 1024) return n + ' B'
+        if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB'
+        if (n < 1024 * 1024 * 1024) return (n / 1024 / 1024).toFixed(1) + ' MB'
+        return (n / 1024 / 1024 / 1024).toFixed(2) + ' GB'
+      },
+
+      formatRelative(ts) {
+        const diff = (Date.now() - ts) / 1000
+        if (diff < 60) return 'just now'
+        if (diff < 3600) return Math.floor(diff / 60) + 'm ago'
+        if (diff < 86400) return Math.floor(diff / 3600) + 'h ago'
+        if (diff < 86400 * 7) return Math.floor(diff / 86400) + 'd ago'
+        return new Date(ts).toLocaleDateString()
+      },
+
+      stripExt(name) { return name.replace(/\.[^./\\]+$/, '') },
+
+      // CSV/spreadsheet formula injection protection.
+      // If a cell starts with =, +, -, @, TAB or CR, prefix with ' so spreadsheet
+      // apps treat it as text (OWASP "Formula Injection" / CWE-1236).
+      sanitizeFormula(value) {
+        const s = value == null ? '' : String(value)
+        return Config.CSV_INJECTION_REGEX.test(s) ? "'" + s : s
+      },
+
+      // Safe text setter — always use textContent for user-supplied content.
+      setText(el, text) { el.textContent = text == null ? '' : String(text) },
+
+      // Promise that resolves after a paint, so spinner shows before sync work.
+      yieldToBrowser() {
+        return new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)))
+      },
+
+      uid() { return 'u' + Math.random().toString(36).slice(2, 9) },
+    }
+
+    /* ═════════════════════════════ STORAGE ════════════════════════════ */
+    const Storage = {
+      get(key, fallback = null) {
+        try {
+          const raw = localStorage.getItem(key)
+          return raw == null ? fallback : JSON.parse(raw)
+        } catch (err) {
+          Logger.warn('storage.get failed for', key, err)
+          return fallback
+        }
+      },
+      set(key, value) {
+        try { localStorage.setItem(key, JSON.stringify(value)); return true }
+        catch (err) {
+          Logger.warn('storage.set failed for', key, err)
+          return false
+        }
+      },
+      remove(key) {
+        try { localStorage.removeItem(key) }
+        catch (err) { Logger.warn('storage.remove failed', err) }
+      },
+      // Rough byte estimate for a JSON-serializable value.
+      sizeOf(value) {
+        try { return JSON.stringify(value).length * 2 /* UTF-16 */ }
+        catch { return Infinity }
+      },
+    }
+
+    /* ═════════════════════════════ NOTIFY (toasts) ════════════════════ */
+    class NotificationManager {
+      #root
+      constructor() { this.#root = Utils.$('toast-root') }
+
+      show(message, opts = {}) {
+        const { title = null, type = 'info', duration } = opts
+        const dur = duration ?? (type === 'error' || type === 'warning'
+          ? Config.TOAST_DURATION_LONG_MS : Config.TOAST_DURATION_MS)
+
+        const toast = Utils.el('div', {
+          class: 'toast ' + type,
+          role: type === 'error' ? 'alert' : 'status',
+        })
+        const icon = this.#icon(type)
+        icon.classList.add('toast-icon')
+        toast.appendChild(icon)
+
+        const content = Utils.el('div', { class: 'toast-content' })
+        if (title) content.appendChild(Utils.el('div', { class: 'toast-title' }, title))
+        content.appendChild(Utils.el('div', { class: 'toast-message' }, message))
+        toast.appendChild(content)
+
+        const close = Utils.el('button', { class: 'toast-close', type: 'button', 'aria-label': 'Dismiss notification' })
+        close.appendChild(this.#xIcon())
+        toast.appendChild(close)
+
+        const dismiss = () => {
+          if (toast.classList.contains('leaving')) return
+          toast.classList.add('leaving')
+          setTimeout(() => toast.remove(), 200)
+        }
+        close.addEventListener('click', dismiss)
+
+        this.#root.appendChild(toast)
+        this.#prune()
+
+        if (dur > 0) setTimeout(dismiss, dur)
+        return dismiss
+      }
+
+      success(message, opts) { return this.show(message, { ...opts, type: 'success' }) }
+      error(message, opts)   { return this.show(message, { ...opts, type: 'error' }) }
+      warning(message, opts) { return this.show(message, { ...opts, type: 'warning' }) }
+      info(message, opts)    { return this.show(message, { ...opts, type: 'info' }) }
+
+      #prune() {
+        const toasts = this.#root.querySelectorAll('.toast:not(.leaving)')
+        const excess = toasts.length - Config.TOAST_MAX_VISIBLE
+        for (let i = 0; i < excess; i++) toasts[i].querySelector('.toast-close').click()
+      }
+
+      #icon(type) {
+        const D = {
+          success: ['M22 11.08V12a10 10 0 1 1-5.93-9.14', 'M22 4L12 14.01l-3-3'],
+          error:   ['M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z', 'M12 9v4', 'M12 17h.01'],
+          warning: ['M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z', 'M12 9v4', 'M12 17h.01'],
+          info:    ['M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z', 'M12 16v-4', 'M12 8h.01'],
+        }
+        return Utils.svg(D[type] || D.info)
+      }
+
+      #xIcon() {
+        return Utils.svg(['M18 6L6 18', 'M6 6l12 12'])
+      }
+    }
+
+    /* ═════════════════════════════ MODAL ══════════════════════════════ */
+    class ModalManager {
+      #root
+      #stack = []
+      constructor() {
+        this.#root = Utils.$('modal-root')
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && this.#stack.length) {
+            const top = this.#stack[this.#stack.length - 1]
+            if (top.opts.closable !== false) top.resolve(top.opts.escResult ?? null)
+          }
+        })
+      }
+
+      /** Generic. Returns a Promise that resolves to whatever an action returns. */
+      open(opts) {
+        return new Promise((resolve) => {
+          const lastActive = document.activeElement
+          const titleId = 'modal-title-' + Utils.uid()
+          const backdrop = Utils.el('div', { class: 'modal-backdrop', role: 'presentation' })
+          const dialog = Utils.el('div', {
+            class: 'modal' + (opts.wide ? ' modal-wide' : ''),
+            role: 'dialog',
+            'aria-modal': 'true',
+            'aria-labelledby': titleId,
+            tabindex: '-1',
+          })
+
+          // Defined first so listeners below can reference it.
+          let settled = false
+          const done = (result) => {
+            if (settled) return
+            settled = true
+            backdrop.classList.add('leaving')
+            setTimeout(() => backdrop.remove(), 160)
+            const i = this.#stack.indexOf(entry)
+            if (i >= 0) this.#stack.splice(i, 1)
+            try { lastActive?.focus?.() } catch { /* ignore */ }
+            resolve(result)
+          }
+          const entry = { opts, resolve: done }
+          this.#stack.push(entry)
+
+          // Header
+          const header = Utils.el('header', { class: 'modal-header' })
+          if (opts.icon) {
+            const iconWrap = Utils.el('span', { class: 'modal-icon ' + opts.icon })
+            iconWrap.appendChild(this.#iconFor(opts.icon))
+            header.appendChild(iconWrap)
+          }
+          header.appendChild(Utils.el('h2', { class: 'modal-title', id: titleId }, opts.title || ''))
+          if (opts.closable !== false) {
+            const close = Utils.el('button', { class: 'modal-close', type: 'button', 'aria-label': 'Close dialog' })
+            close.appendChild(Utils.svg(['M18 6L6 18', 'M6 6l12 12']))
+            close.addEventListener('click', () => done(opts.escResult ?? null))
+            header.appendChild(close)
+          }
+          dialog.appendChild(header)
+
+          // Body
+          const body = Utils.el('div', { class: 'modal-body' })
+          if (opts.message != null) body.appendChild(Utils.el('p', {}, opts.message))
+          if (opts.content) body.appendChild(opts.content)
+          dialog.appendChild(body)
+
+          // Footer
+          const footer = Utils.el('footer', { class: 'modal-actions' })
+          for (const action of opts.actions || []) {
+            const btn = Utils.el('button', {
+              type: 'button',
+              class: 'btn ' + (action.variant ? 'btn-' + action.variant : 'btn-secondary'),
+              disabled: !!action.disabled,
+            }, action.label)
+            if (action.variant === 'primary') btn.dataset.primary = '1'
+            btn.addEventListener('click', () => {
+              if (typeof action.onClick === 'function') {
+                const result = action.onClick({ body, dialog, done })
+                if (result !== undefined) done(result)
+              } else {
+                done(action.value)
+              }
+            })
+            footer.appendChild(btn)
+          }
+          dialog.appendChild(footer)
+          backdrop.appendChild(dialog)
+
+          backdrop.addEventListener('mousedown', (e) => {
+            if (e.target === backdrop && opts.closable !== false) done(opts.escResult ?? null)
+          })
+
+          this.#root.appendChild(backdrop)
+
+          // Focus management — trap Tab inside the dialog.
+          const focusable = () => dialog.querySelectorAll(
+            'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
+          )
+          dialog.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              // Submit on Enter unless inside a textarea.
+              if (e.target.tagName === 'TEXTAREA') return
+              const primary = footer.querySelector('[data-primary="1"]')
+              if (primary) { e.preventDefault(); primary.click() }
+              return
+            }
+            if (e.key !== 'Tab') return
+            const list = focusable()
+            if (!list.length) { e.preventDefault(); return }
+            const first = list[0], last = list[list.length - 1]
+            if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
+            else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
+          })
+
+          // Initial focus.
+          requestAnimationFrame(() => {
+            const list = focusable()
+            const initial = opts.initialFocus
+              ? dialog.querySelector(opts.initialFocus)
+              : (list[list.length - 1] || dialog)
+            initial?.focus()
+            initial?.select?.()
+          })
+        })
+      }
+
+      async alert(message, opts = {}) {
+        return this.open({
+          title: opts.title || 'Notice',
+          icon: opts.icon || 'info',
+          message,
+          actions: [{ label: opts.okLabel || 'OK', variant: 'primary', value: true }],
+          escResult: true,
+        })
+      }
+
+      async confirm(message, opts = {}) {
+        return this.open({
+          title: opts.title || 'Confirm',
+          icon: opts.icon || (opts.danger ? 'danger' : 'warning'),
+          message,
+          actions: [
+            { label: opts.cancelLabel || 'Cancel', variant: 'secondary', value: false },
+            { label: opts.confirmLabel || 'OK', variant: opts.danger ? 'danger' : 'primary', value: true },
+          ],
+          escResult: false,
+        })
+      }
+
+      async prompt(message, defaultValue = '', opts = {}) {
+        const input = Utils.el('input', {
+          type: 'text',
+          class: 'modal-input',
+          value: defaultValue,
+          'aria-label': opts.inputLabel || message,
+          placeholder: opts.placeholder || '',
+          autocomplete: 'off',
+        })
+        const content = Utils.el('div', {}, input)
+        let validation
+        if (opts.validate) {
+          validation = Utils.el('p', { class: 'modal-validation', style: 'color:var(--danger);font-size:12px;margin-top:6px;' })
+          content.appendChild(validation)
+        }
+        return this.open({
+          title: opts.title || 'Input',
+          icon: opts.icon || 'primary',
+          message,
+          content,
+          initialFocus: '.modal-input',
+          actions: [
+            { label: opts.cancelLabel || 'Cancel', variant: 'secondary', value: null },
+            {
+              label: opts.confirmLabel || 'OK',
+              variant: 'primary',
+              onClick: () => {
+                const value = input.value
+                if (opts.validate) {
+                  const err = opts.validate(value)
+                  if (err) { Utils.setText(validation, err); input.focus(); input.select(); return undefined }
+                }
+                return value
+              },
+            },
+          ],
+          escResult: null,
+        })
+      }
+
+      #iconFor(type) {
+        const D = {
+          info:    ['M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z', 'M12 16v-4', 'M12 8h.01'],
+          success: ['M22 11.08V12a10 10 0 1 1-5.93-9.14', 'M22 4L12 14.01l-3-3'],
+          warning: ['M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z', 'M12 9v4', 'M12 17h.01'],
+          danger:  ['M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z', 'M12 9v4', 'M12 17h.01'],
+          primary: ['M12 20h9', 'M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z'],
+        }
+        return Utils.svg(D[type] || D.info)
+      }
+    }
+
+    /* ═════════════════════════════ THEME ══════════════════════════════ */
+    class ThemeManager {
+      #mql
+      constructor(bus) {
+        this.bus = bus
+        this.#mql = window.matchMedia('(prefers-color-scheme: dark)')
+        this.#mql.addEventListener?.('change', () => { if (this.current === 'system') this.apply() })
+      }
+      get current() { return Storage.get(Config.THEME_KEY, 'system') }
+      set current(v) { Storage.set(Config.THEME_KEY, v); this.apply(); this.bus.emit('theme:change', this.resolved) }
+      get resolved() {
+        const c = this.current
+        if (c === 'dark' || c === 'light') return c
+        return this.#mql.matches ? 'dark' : 'light'
+      }
+      apply() { document.documentElement.setAttribute('data-theme', this.resolved) }
+    }
+
+    /* ═════════════════════════════ KEYBOARD ═══════════════════════════ */
+    class Keyboard {
+      #shortcuts = []
+      constructor() {
+        document.addEventListener('keydown', (e) => this.#handle(e))
+      }
+      register(combo, fn, description = '') {
+        this.#shortcuts.push({ combo, fn, description, parsed: this.#parse(combo) })
+      }
+      list() { return this.#shortcuts.slice() }
+      #parse(combo) {
+        const parts = combo.toLowerCase().split('+').map((s) => s.trim())
+        return {
+          ctrl: parts.includes('ctrl') || parts.includes('cmd'),
+          shift: parts.includes('shift'),
+          alt: parts.includes('alt'),
+          key: Keyboard.#normalize(parts[parts.length - 1]),
+        }
+      }
+      static #normalize(k) {
+        if (k === ' ') return 'space'
+        if (k === 'arrowleft') return 'left'
+        if (k === 'arrowright') return 'right'
+        if (k === 'arrowup') return 'up'
+        if (k === 'arrowdown') return 'down'
+        return k
+      }
+      #matchesTarget(e) {
+        const tag = e.target?.tagName
+        const editable = e.target?.isContentEditable
+        // Allow Ctrl shortcuts even in inputs, but block single-key shortcuts in inputs.
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || editable) {
+          return e.ctrlKey || e.metaKey
+        }
+        return true
+      }
+      #handle(e) {
+        const key = Keyboard.#normalize(e.key.toLowerCase())
+        for (const s of this.#shortcuts) {
+          const p = s.parsed
+          if (key !== p.key) continue
+          if (p.ctrl !== (e.ctrlKey || e.metaKey)) continue
+          if (p.shift !== e.shiftKey) continue
+          if (p.alt !== e.altKey) continue
+          if (!this.#matchesTarget(e) && p.key !== 'escape') continue
+          e.preventDefault()
+          try { s.fn(e) } catch (err) { Logger.error('shortcut handler failed', err) }
+          break
+        }
+      }
+    }
+
+    /* ═════════════════════════════ FILE SERVICE ═══════════════════════ */
+    class FileService {
+      static VIDEO_EXTS = ['mp4', 'webm', 'ogg', 'ogv', 'm4v', 'mov', 'mkv', 'avi', '3gp', 'flv']
+
+      detectMode(file) {
+        if (!file || !file.name) return null
+        const m = file.name.toLowerCase().match(/\.([^.]+)$/)
+        if (!m && file.type && file.type.startsWith('video/')) return 'video'
+        if (!m) return null
+        const ext = m[1]
+        if (ext === 'csv') return 'csv'
+        if (ext === 'xlsx' || ext === 'xls') return 'xlsx'
+        if (ext === 'docx') return 'docx'
+        if (FileService.VIDEO_EXTS.includes(ext)) return 'video'
+        if (file.type && file.type.startsWith('video/')) return 'video'
+        return null
+      }
+
+      validate(file) {
+        if (!file) return { ok: false, reason: 'No file selected.' }
+        const mode = this.detectMode(file)
+        if (!mode) {
+          return { ok: false, reason: 'Unsupported file type. Use CSV, XLSX, DOCX, or a common video format.' }
+        }
+        if (file.size === 0) {
+          return { ok: false, reason: 'File is empty.' }
+        }
+        // Spreadsheet & document parsers read the whole file into memory; video
+        // streams from a blob URL, so the cap doesn't apply.
+        if (mode !== 'video' && file.size > Config.MAX_FILE_BYTES) {
+          return { ok: false, reason:
+            `File is too large (${Utils.formatBytes(file.size)}). Maximum is ${Utils.formatBytes(Config.MAX_FILE_BYTES)}.` }
+        }
+        return { ok: true }
+      }
+
+      read(file, kind) {
+        return new Promise((res, rej) => {
+          const r = new FileReader()
+          r.onload = () => res(r.result)
+          r.onerror = () => rej(r.error || new Error('Read failed'))
+          if (kind === 'text') r.readAsText(file)
+          else r.readAsArrayBuffer(file)
+        })
+      }
+
+      /* ─── File System Access API (Chromium only) ────────── */
+      hasFileSystemAccess() { return typeof window.showOpenFilePicker === 'function' }
+
+      async pickWritableForOpen() {
+        const [handle] = await window.showOpenFilePicker({
+          multiple: false,
+          excludeAcceptAllOption: false,
+          types: [{
+            description: 'Spreadsheets and documents',
+            accept: {
+              'text/csv': ['.csv'],
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+              'application/vnd.ms-excel': ['.xls'],
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+            },
+          }],
+        })
+        await this.#ensureWritePermission(handle)
+        return handle
+      }
+
+      async pickWritableForSave(suggestedName, mode) {
+        const type = mode === 'csv'
+          ? { description: 'CSV', accept: { 'text/csv': ['.csv'] } }
+          : { description: 'XLSX', accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] } }
+        return window.showSaveFilePicker({ suggestedName, types: [type] })
+      }
+
+      async #ensureWritePermission(handle) {
+        const opts = { mode: 'readwrite' }
+        if ((await handle.queryPermission(opts)) === 'granted') return
+        if ((await handle.requestPermission(opts)) !== 'granted') {
+          throw new Error('Write permission denied — the file cannot be auto-saved.')
+        }
+      }
+
+      async writeToHandle(handle, data) {
+        await this.#ensureWritePermission(handle)
+        const writable = await handle.createWritable()
+        await writable.write(data)
+        await writable.close()
+      }
+    }
+
+    /* ═════════════════════════════ DOWNLOAD ═══════════════════════════ */
+    class DownloadManager {
+      trigger(blob, filename) {
+        const url = URL.createObjectURL(blob)
+        const a = Utils.el('a', { href: url, download: filename })
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        URL.revokeObjectURL(url)
+      }
+
+      // CSV — single sheet, formulas defanged.
+      csv(rows, filename) {
+        const sanitized = rows.map((r) => r.map(Utils.sanitizeFormula))
+        const text = Papa.unparse(sanitized)
+        // BOM helps Excel open UTF-8 correctly.
+        this.trigger(new Blob(['﻿', text], { type: 'text/csv;charset=utf-8;' }), filename)
+      }
+
+      // XLSX — all sheets, formulas defanged.
+      xlsx(sheetData, filename) {
+        const wb = XLSX.utils.book_new()
+        for (const { name, headers, data } of sheetData) {
+          const aoa = [headers.map(Utils.sanitizeFormula)]
+            .concat(data.map((row) => row.map(Utils.sanitizeFormula)))
+          const ws = XLSX.utils.aoa_to_sheet(aoa)
+          XLSX.utils.book_append_sheet(wb, ws, name)
+        }
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+        this.trigger(new Blob([wbout], { type: 'application/octet-stream' }), filename)
+      }
+    }
+
+    /* ═════════════════════════════ SHEET MANAGER ══════════════════════ */
+    class SheetManager {
+      sheetNames = []
+      currentSheetName = null
+      cache = Object.create(null)
+
+      reset() {
+        this.sheetNames = []
+        this.currentSheetName = null
+        for (const k of Object.keys(this.cache)) delete this.cache[k]
+      }
+
+      load(names, cache, current) {
+        this.sheetNames = names.slice()
+        for (const k of Object.keys(this.cache)) delete this.cache[k]
+        Object.assign(this.cache, cache)
+        this.currentSheetName = current
+      }
+
+      // CSV parse → 2D normalized.
+      csvToTable(csv) {
+        const parsed = Papa.parse(csv, { skipEmptyLines: true })
+        const rows = parsed.data
+        if (!rows.length) return { headers: [''], data: [['']] }
+        const headers = rows[0]
+        const width = headers.length
+        const data = rows.slice(1)
+        for (const r of data) while (r.length < width) r.push('')
+        return { headers, data: data.length ? data : [new Array(width).fill('')] }
+      }
+
+      uniqueName(base) {
+        let i = 1, candidate = base
+        while (this.sheetNames.includes(candidate)) { i++; candidate = base + ' (' + i + ')' }
+        return candidate
+      }
+
+      validateName(name) {
+        if (!name || !name.trim()) return 'Sheet name cannot be empty.'
+        if (name.length > Config.EXCEL_SHEET_NAME_MAX) return `Sheet name cannot exceed ${Config.EXCEL_SHEET_NAME_MAX} characters.`
+        if (Config.EXCEL_SHEET_NAME_INVALID.test(name)) return 'Sheet name cannot contain: \\ / ? * [ ] :'
+        return null
+      }
+
+      add(initial = { headers: ['Column 1'], data: [['']] }) {
+        const name = this.uniqueName('Sheet' + (this.sheetNames.length + 1))
+        this.sheetNames.push(name)
+        this.cache[name] = initial
+        return name
+      }
+
+      rename(oldName, newName) {
+        if (oldName === newName) return false
+        if (this.sheetNames.includes(newName)) throw new Error('A sheet with this name already exists.')
+        this.cache[newName] = this.cache[oldName]
+        delete this.cache[oldName]
+        this.sheetNames[this.sheetNames.indexOf(oldName)] = newName
+        if (this.currentSheetName === oldName) this.currentSheetName = newName
+        return true
+      }
+
+      delete(name) {
+        if (this.sheetNames.length <= 1) throw new Error('Cannot delete the last sheet.')
+        const idx = this.sheetNames.indexOf(name)
+        if (idx < 0) return null
+        this.sheetNames.splice(idx, 1)
+        delete this.cache[name]
+        if (this.currentSheetName === name) {
+          this.currentSheetName = this.sheetNames[Math.max(0, idx - 1)]
+        }
+        return this.currentSheetName
+      }
+
+      setCurrent(name) {
+        if (!this.sheetNames.includes(name)) return false
+        this.currentSheetName = name
+        return true
+      }
+
+      capture(headers, data) {
+        if (!this.currentSheetName) return
+        this.cache[this.currentSheetName] = { headers, data }
+      }
+
+      snapshot() {
+        return {
+          names: this.sheetNames.slice(),
+          current: this.currentSheetName,
+          cache: Object.fromEntries(this.sheetNames.map((n) => [n, {
+            headers: this.cache[n].headers.slice(),
+            data: this.cache[n].data.map((r) => r.slice()),
+          }])),
+        }
+      }
+    }
+
+    /* ═════════════════════════════ TABLE SERVICE ══════════════════════ */
+    class TableService {
+      hot = null
+      #container
+      #onCellChange
+      #onStructureChange
+
+      constructor(container) { this.#container = container }
+
+      onCellChange(fn) { this.#onCellChange = fn }
+      onStructureChange(fn) { this.#onStructureChange = fn }
+
+      destroy() {
+        if (!this.hot) return
+        this.hot.destroy()
+        this.hot = null
+        this.#container.innerHTML = ''
+        this.#container.className = 'view'
+      }
+
+      render(headers, data, opts = {}) {
+        this.destroy()
+        const self = this
+        this.hot = new Handsontable(this.#container, {
+          data,
+          rowHeaders: true,
+          colHeaders: headers,
+          columnSorting: true,
+          search: true,
+          contextMenu: opts.contextMenu || { items: this.#defaultContextMenu(opts.onRenameColumn) },
+          manualColumnResize: true,
+          manualRowResize: true,
+          manualColumnMove: true,
+          manualRowMove: true,
+          allowInsertRow: true,
+          allowInsertColumn: true,
+          allowRemoveRow: true,
+          allowRemoveColumn: true,
+          undo: true,
+          stretchH: 'all',
+          width: '100%',
+          height: '100%',
+          outsideClickDeselects: false,
+          autoWrapRow: true,
+          autoWrapCol: true,
+          licenseKey: 'non-commercial-and-evaluation',
+          afterChange: (changes, source) => { if (source !== 'loadData') self.#onCellChange?.(changes, source) },
+          afterCreateRow: () => self.#onStructureChange?.(),
+          afterRemoveRow: () => self.#onStructureChange?.(),
+          afterCreateCol: () => self.#onStructureChange?.(),
+          afterRemoveCol: () => self.#onStructureChange?.(),
+          afterSelectionEnd: () => self.#onStructureChange?.(),
+        })
+      }
+
+      #defaultContextMenu(onRenameColumn) {
+        return {
+          row_above: {}, row_below: {}, remove_row: {},
+          sep1: '---------',
+          col_left: {}, col_right: {}, remove_col: {},
+          rename_col: {
+            name: 'Rename column',
+            callback(_key, sel) {
+              const col = sel && sel[0] ? sel[0].start.col : -1
+              if (col >= 0) onRenameColumn?.(col)
+            },
+          },
+          sep2: '---------',
+          undo: {}, redo: {},
+          sep3: '---------',
+          copy: {}, cut: {},
+          sep4: '---------',
+          alignment: {},
+        }
+      }
+
+      selection() {
+        if (!this.hot) return null
+        const sel = this.hot.getSelectedLast()
+        if (!sel) return null
+        const [r1, c1, r2, c2] = sel
+        return {
+          row: Math.min(r1, r2),
+          col: Math.min(c1, c2),
+          endRow: Math.max(r1, r2),
+          endCol: Math.max(c1, c2),
+        }
+      }
+
+      rowCount() { return this.hot ? this.hot.countRows() : 0 }
+      colCount() { return this.hot ? this.hot.countCols() : 0 }
+      headers() { return this.hot ? this.hot.getColHeader().slice() : [] }
+      data() { return this.hot ? this.hot.getData() : [] }
+
+      setHeaders(headers) { this.hot?.updateSettings({ colHeaders: headers }) }
+
+      alter(...args) { this.hot?.alter(...args) }
+      undo() { this.hot?.undo() }
+      redo() { this.hot?.redo() }
+
+      // Selection statistics — sum/avg/count for numeric cells in selection.
+      // Skipped for very large selections to keep the UI responsive.
+      selectionStats() {
+        const sel = this.selection()
+        if (!sel || !this.hot) return null
+        const cells = (sel.endRow - sel.row + 1) * (sel.endCol - sel.col + 1)
+        if (cells > 50000) return { cells, count: 0, numericCount: 0, sum: 0, avg: null, capped: true }
+        let count = 0, numericCount = 0, sum = 0
+        for (let r = sel.row; r <= sel.endRow; r++) {
+          for (let c = sel.col; c <= sel.endCol; c++) {
+            const v = this.hot.getDataAtCell(r, c)
+            if (v == null || v === '') continue
+            count++
+            const n = Number(v)
+            if (!isNaN(n) && isFinite(n)) { numericCount++; sum += n }
+          }
+        }
+        return { cells, count, numericCount, sum, avg: numericCount ? sum / numericCount : null }
+      }
+    }
+
+    /* ═════════════════════════════ SEARCH ═════════════════════════════ */
+    class SearchService {
+      #table; #count = 0; #lastQuery = ''
+      constructor(table) { this.#table = table }
+
+      query(term) {
+        if (!this.#table.hot) return 0
+        this.#lastQuery = term
+        const plugin = this.#table.hot.getPlugin('search')
+        const results = plugin.query(term)
+        this.#table.hot.render()
+        this.#count = results.length
+        // Scroll to first match.
+        if (results.length) this.#table.hot.scrollViewportTo(results[0].row, results[0].col)
+        return this.#count
+      }
+
+      clear() {
+        if (!this.#table.hot) return
+        const plugin = this.#table.hot.getPlugin('search')
+        plugin.query('')
+        this.#table.hot.render()
+        this.#count = 0
+        this.#lastQuery = ''
+      }
+
+      get count() { return this.#count }
+    }
+
+    /* ═════════════════════════════ RECENT FILES ═══════════════════════ */
+    class RecentFiles {
+      list() { return Storage.get(Config.RECENT_FILES_KEY, []) }
+      add({ name, size, mode }) {
+        const list = this.list().filter((f) => f.name !== name)
+        list.unshift({ name, size, mode, ts: Date.now() })
+        Storage.set(Config.RECENT_FILES_KEY, list.slice(0, Config.RECENT_FILES_MAX))
+      }
+      clear() { Storage.remove(Config.RECENT_FILES_KEY) }
+    }
+
+    /* ═════════════════════════════ AUTOSAVE ═══════════════════════════ */
+    class AutosaveManager {
+      #sheets; #ui; #notify; #debouncedSave
+      constructor({ sheets, ui, notify }) {
+        this.#sheets = sheets
+        this.#ui = ui
+        this.#notify = notify
+        this.#debouncedSave = Utils.debounce(() => this.#doSave(), Config.AUTOSAVE_DEBOUNCE_MS)
+      }
+
+      hasSession() {
+        const s = Storage.get(Config.AUTOSAVE_KEY)
+        return !!(s && s.sheetNames && s.sheetNames.length)
+      }
+
+      load() { return Storage.get(Config.AUTOSAVE_KEY) }
+
+      clear() {
+        Storage.remove(Config.AUTOSAVE_KEY)
+        this.#ui.setSaveStatus(null)
+      }
+
+      requestSave(meta) {
+        this.#meta = meta
+        this.#ui.setSaveStatus('saving')
+        this.#debouncedSave()
+      }
+
+      flush() { this.#debouncedSave.flush() }
+
+      #meta = null
+      #doSave() {
+        if (!this.#meta) return
+        const snap = this.#sheets.snapshot()
+        const payload = {
+          version: Config.VERSION,
+          ts: Date.now(),
+          mode: this.#meta.mode,
+          fileName: this.#meta.fileName,
+          fileSize: this.#meta.fileSize,
+          sheetNames: snap.names,
+          currentSheet: snap.current,
+          cache: snap.cache,
+        }
+        const size = Storage.sizeOf(payload)
+        if (size > Config.AUTOSAVE_MAX_BYTES) {
+          Logger.warn('autosave skipped — payload too large', size)
+          this.#ui.setSaveStatus('skipped')
+          this.#notify.warning(
+            `Autosave skipped: workbook too large (${Utils.formatBytes(size / 2)} parsed).`,
+            { title: 'Autosave off' }
+          )
+          return
+        }
+        const ok = Storage.set(Config.AUTOSAVE_KEY, payload)
+        this.#ui.setSaveStatus(ok ? 'saved' : 'error')
+      }
+    }
+
+    /* ═════════════════════════════ PWA ════════════════════════════════
+     * Builds and injects a Web App Manifest at runtime via a Blob URL,
+     * captures the install prompt, exposes a manual install action, and
+     * handles OS-launched files (file_handlers + launchQueue).
+     * ──────────────────────────────────────────────────────────────────── */
+    class PWA {
+      #installPrompt = null
+      #installBtn
+      #onLaunchedFile
+
+      constructor({ installBtn, onLaunchedFile, notify }) {
+        this.#installBtn = installBtn
+        this.#onLaunchedFile = onLaunchedFile
+        this.notify = notify
+      }
+
+      init() {
+        // Manifest + early `beforeinstallprompt` capture happen in the inline
+        // <head> script (must run synchronously before page parse completes).
+        this.#wireInstall()
+        this.#wireLaunchQueue()
+      }
+
+      #isChromiumBased() {
+        // Best-effort detection — Chromium browsers expose `window.chrome`.
+        return 'chrome' in window
+          || /Edg|OPR|Brave|Vivaldi/.test(navigator.userAgent)
+      }
+
+      #wireInstall() {
+        // Already installed (running standalone) → never show the button.
+        const standalone = window.matchMedia('(display-mode: standalone)').matches
+          || window.matchMedia('(display-mode: window-controls-overlay)').matches
+          || window.navigator.standalone === true
+        if (standalone) { this.#installBtn.hidden = true; return }
+
+        // 1. The head script may have already captured the prompt — pick it up.
+        if (window.__deferredInstallPrompt) {
+          this.#installPrompt = window.__deferredInstallPrompt
+        }
+
+        // 2. Listen for later fires too (some browsers fire after engagement).
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault()
+          this.#installPrompt = e
+          this.#installBtn.hidden = false
+        })
+
+        // 3. For Chromium-based browsers, surface the button immediately so the
+        //    user can install even before Chrome's engagement heuristic fires.
+        //    Click handler falls back to manual instructions when no prompt yet.
+        if (this.#installPrompt || this.#isChromiumBased()) {
+          this.#installBtn.hidden = false
+        }
+
+        this.#installBtn.addEventListener('click', async () => {
+          const prompt = this.#installPrompt || window.__deferredInstallPrompt
+          if (prompt) {
+            prompt.prompt()
+            const result = await prompt.userChoice
+            this.#installPrompt = null
+            window.__deferredInstallPrompt = null
+            if (result.outcome === 'accepted') {
+              this.#installBtn.hidden = true
+              this.notify.success('Installed. You can launch it from your apps.', { title: 'Installed' })
+            }
+            return
+          }
+          // No prompt available yet — show how to install manually.
+          this.#showInstallInstructions()
+        })
+
+        window.addEventListener('appinstalled', () => {
+          this.#installBtn.hidden = true
+          this.#installPrompt = null
+          window.__deferredInstallPrompt = null
+          this.notify.success('App installed. Find it in your apps.', { title: 'Installed' })
+        })
+      }
+
+      #showInstallInstructions() {
+        const isMac = /Mac|iPhone|iPad/i.test(navigator.userAgent)
+        const isIOS = /iPhone|iPad/i.test(navigator.userAgent)
+        const isChromium = this.#isChromiumBased()
+
+        let msg
+        if (isIOS) {
+          msg = 'In Safari: tap the Share button, then "Add to Home Screen".'
+        } else if (isChromium) {
+          msg = 'Click the install icon (⊕) in the address bar, or open the browser menu and choose "Install File Viewer".'
+        } else if (isMac) {
+          msg = 'In Safari: File → Add to Dock. In Chrome/Edge: install icon in the address bar.'
+        } else {
+          msg = 'Open your browser menu and look for "Install" or "Add to Home Screen". Best support is in Chrome and Edge.'
+        }
+        this.notify.info(msg, { title: 'How to install', duration: 8000 })
+      }
+
+      #wireLaunchQueue() {
+        if (!('launchQueue' in window) || !('LaunchParams' in window)) return
+        window.launchQueue.setConsumer(async (params) => {
+          if (!params.files || !params.files.length) return
+          const handle = params.files[0]
+          try {
+            const file = await handle.getFile()
+            this.#onLaunchedFile(file, handle)
+          } catch (err) {
+            Logger.error('launch file failed', err)
+            this.notify.error('Could not open the launched file: ' + (err.message || err))
+          }
+        })
+      }
+    }
+
+    /* ═════════════════════════════ DRAG & DROP ════════════════════════ */
+    class DragDropManager {
+      #overlay; #onDrop; #counter = 0
+      constructor(overlay, onDrop) { this.#overlay = overlay; this.#onDrop = onDrop }
+      init() {
+        const isFile = (e) => !!(e?.dataTransfer?.types &&
+          Array.from(e.dataTransfer.types).includes('Files'))
+
+        window.addEventListener('dragenter', (e) => {
+          if (!isFile(e)) return
+          e.preventDefault()
+          this.#counter++
+          this.#overlay.hidden = false
+        })
+        // dragleave can't reliably check isFile (security strips types), so always dec.
+        window.addEventListener('dragleave', () => {
+          if (this.#counter > 0) this.#counter--
+          if (this.#counter === 0) this.#overlay.hidden = true
+        })
+        window.addEventListener('dragover', (e) => { e.preventDefault() })
+        window.addEventListener('dragend', () => { this.#counter = 0; this.#overlay.hidden = true })
+        window.addEventListener('drop', (e) => {
+          e.preventDefault()
+          this.#counter = 0
+          this.#overlay.hidden = true
+          const file = e.dataTransfer.files[0]
+          if (file) this.#onDrop(file)
+        })
+      }
+    }
+
+    /* ═════════════════════════════ UI MANAGER ═════════════════════════ */
+    class UIManager {
+      els = {}
+      saveTimer = null
+      constructor() {
+        const ids = [
+          'app-header', 'file-info', 'file-name', 'file-meta', 'unsaved-dot',
+          'open-btn', 'close-btn', 'download-csv-btn', 'download-xlsx-btn', 'link-btn', 'open-url-btn',
+          'recent-btn', 'recent-menu', 'theme-btn', 'theme-menu', 'help-btn', 'install-btn',
+          'empty-state', 'handsontable-container', 'docx-container', 'video-container',
+          'video-toolbar', 'vbtn-play', 'vbtn-play-icon', 'vbtn-play-label',
+          'vbtn-back10', 'vbtn-fwd10', 'vctrl-speed',
+          'vbtn-loop', 'vbtn-mute', 'vbtn-mute-label', 'vbtn-pip', 'vbtn-snapshot', 'vbtn-fullscreen',
+          'table-toolbar', 'sheet-tabs', 'status-bar',
+          'status-rows', 'status-cols', 'status-selection',
+          'status-sheet', 'status-sheet-name',
+          'status-save', 'status-save-dot', 'status-save-text',
+          'drop-overlay', 'input-file', 'loading-overlay', 'loading-message',
+          'find-bar', 'find-input', 'find-count', 'find-close', 'btn-find',
+          'qty-row', 'qty-col',
+          'btn-add-row', 'btn-del-row', 'btn-add-col', 'btn-del-col',
+          'btn-rename-col', 'btn-undo', 'btn-redo',
+        ]
+        for (const id of ids) this.els[id] = Utils.$(id)
+      }
+
+      showView(name) {
+        this.els['empty-state'].hidden = name !== 'empty'
+        this.els['handsontable-container'].hidden = name !== 'table'
+        this.els['docx-container'].hidden = name !== 'docx'
+        this.els['video-container'].hidden = name !== 'video'
+        this.els['table-toolbar'].hidden = name !== 'table'
+        this.els['video-toolbar'].hidden = name !== 'video'
+        if (name !== 'table') {
+          this.els['find-bar'].hidden = true
+          this.els['sheet-tabs'].hidden = true
+        }
+      }
+
+      setActionButtons(mode) {
+        const isTable = mode === 'csv' || mode === 'xlsx'
+        this.els['download-csv-btn'].hidden = !isTable
+        this.els['download-xlsx-btn'].hidden = !isTable
+        this.els['close-btn'].hidden = !mode
+      }
+
+      setFileInfo({ name, size, mode, sheetCount }) {
+        this.els['file-info'].hidden = false
+        Utils.setText(this.els['file-name'], name)
+        this.updateMeta({ size, mode, sheetCount })
+      }
+
+      updateMeta({ size, mode, sheetCount }) {
+        const parts = [Utils.formatBytes(size)]
+        if (mode === 'docx') parts.push('DOCX · view only')
+        else if (mode === 'video') parts.push('Video · view only')
+        else {
+          parts.push(mode.toUpperCase())
+          parts.push(sheetCount + (sheetCount === 1 ? ' sheet' : ' sheets'))
+        }
+        Utils.setText(this.els['file-meta'], parts.join(' · '))
+      }
+
+      setUnsaved(flag) {
+        this.els['unsaved-dot'].hidden = !flag
+      }
+
+      clearFileInfo() {
+        this.els['file-info'].hidden = true
+        Utils.setText(this.els['file-name'], '')
+        Utils.setText(this.els['file-meta'], '')
+        this.els['unsaved-dot'].hidden = true
+      }
+
+      setStatus({ rows, cols, sheetName, selection }) {
+        this.els['status-bar'].hidden = false
+        Utils.setText(this.els['status-rows'], rows.toLocaleString())
+        Utils.setText(this.els['status-cols'], cols.toLocaleString())
+        if (sheetName) {
+          this.els['status-sheet'].hidden = false
+          Utils.setText(this.els['status-sheet-name'], sheetName)
+        } else this.els['status-sheet'].hidden = true
+        if (selection) {
+          this.els['status-selection'].hidden = false
+          const parts = [`${selection.cells} cell${selection.cells === 1 ? '' : 's'}`]
+          if (selection.numericCount > 0) {
+            parts.push(`Σ ${this.#fmtNum(selection.sum)}`)
+            parts.push(`x̄ ${this.#fmtNum(selection.avg)}`)
+            parts.push(`# ${selection.numericCount}`)
+          }
+          Utils.setText(this.els['status-selection'], parts.join(' · '))
+        } else this.els['status-selection'].hidden = true
+      }
+
+      #fmtNum(n) {
+        if (n == null) return '—'
+        if (Number.isInteger(n)) return n.toLocaleString()
+        return n.toLocaleString(undefined, { maximumFractionDigits: 4 })
+      }
+
+      clearStatus() {
+        this.els['status-bar'].hidden = true
+        this.els['status-selection'].hidden = true
+      }
+
+      setSaveStatus(state) {
+        if (!state) { this.els['status-save'].hidden = true; return }
+        this.els['status-save'].hidden = false
+        const dot = this.els['status-save-dot']
+        dot.classList.remove('saving', 'error')
+        if (state === 'saving')        { dot.classList.add('saving'); Utils.setText(this.els['status-save-text'], 'Saving…') }
+        else if (state === 'saved')    { Utils.setText(this.els['status-save-text'], 'Saved locally') }
+        else if (state === 'saved-file') { Utils.setText(this.els['status-save-text'], 'Saved to file') }
+        else if (state === 'error')    { dot.classList.add('error'); Utils.setText(this.els['status-save-text'], 'Save failed') }
+        else if (state === 'skipped')  { dot.classList.add('error'); Utils.setText(this.els['status-save-text'], 'Autosave off') }
+      }
+
+      showLoading(message = 'Loading…') {
+        Utils.setText(this.els['loading-message'], message)
+        this.els['loading-overlay'].hidden = false
+      }
+      hideLoading() { this.els['loading-overlay'].hidden = true }
+    }
+
+    /* ═════════════════════════════ VIDEO CONTROLLER ═══════════════════
+     * Owns the lifecycle of the <video> element: build, wire toolbar,
+     * keyboard shortcuts, volume persistence, snapshots, PiP, fullscreen.
+     * ──────────────────────────────────────────────────────────────────── */
+    class VideoController {
+      #ui; #notify
+      #video = null
+      #fileName = ''
+      #prefs
+
+      constructor({ ui, notify }) {
+        this.#ui = ui
+        this.#notify = notify
+        this.#prefs = Storage.get(Config.VIDEO_PREFS_KEY, { volume: 1, muted: false, speed: 1, loop: false })
+        this.#wireToolbar()
+        // Hide PiP button if browser doesn't support it.
+        if (document.pictureInPictureEnabled) {
+          this.#ui.els['vbtn-pip'].hidden = false
+        }
+      }
+
+      load(src, fileName, { onLoadedMetadata, onError } = {}) {
+        this.#fileName = fileName
+        this.teardown()
+
+        const container = this.#ui.els['video-container']
+        const loading = Utils.el('div', { class: 'video-loading' })
+        loading.appendChild(Utils.el('div', { class: 'spinner' }))
+        loading.appendChild(Utils.el('div', {}, 'Loading video…'))
+        container.appendChild(loading)
+
+        const video = Utils.el('video', {
+          src,
+          controls: true,
+          preload: 'metadata',
+          playsinline: 'true',
+          'aria-label': 'Video player for ' + fileName,
+        })
+        // Restore persisted prefs.
+        video.volume = this.#prefs.volume
+        video.muted = this.#prefs.muted
+        video.playbackRate = this.#prefs.speed
+        video.loop = this.#prefs.loop
+
+        video.addEventListener('loadedmetadata', () => {
+          loading.remove()
+          this.#syncToolbarFromVideo()
+          if (onLoadedMetadata) onLoadedMetadata(video)
+        })
+        video.addEventListener('error', () => {
+          loading.remove()
+          if (onError) onError()
+        })
+        video.addEventListener('play',  () => this.#updatePlayButton())
+        video.addEventListener('pause', () => this.#updatePlayButton())
+        video.addEventListener('volumechange', () => {
+          this.#updateMuteButton()
+          this.#prefs.volume = video.volume
+          this.#prefs.muted = video.muted
+          this.#savePrefs()
+        })
+        video.addEventListener('ratechange', () => {
+          this.#prefs.speed = video.playbackRate
+          this.#savePrefs()
+          this.#ui.els['vctrl-speed'].value = String(video.playbackRate)
+        })
+
+        container.appendChild(video)
+        this.#video = video
+      }
+
+      teardown() {
+        const container = this.#ui.els['video-container']
+        if (this.#video) {
+          try { this.#video.pause() } catch { /* ignore */ }
+          this.#video.removeAttribute('src')
+          try { this.#video.load() } catch { /* ignore */ }
+          this.#video = null
+        }
+        if (container) container.innerHTML = ''
+      }
+
+      get video() { return this.#video }
+      get fileName() { return this.#fileName }
+
+      /* ─── Keyboard shortcuts (dispatched from App) ────── */
+      togglePlay() {
+        const v = this.#video; if (!v) return
+        if (v.paused) v.play().catch(() => {})
+        else v.pause()
+      }
+      seek(delta) { if (this.#video) this.#video.currentTime = Math.max(0, Math.min((this.#video.duration || 0), this.#video.currentTime + delta)) }
+      adjustVolume(delta) {
+        const v = this.#video; if (!v) return
+        v.volume = Math.max(0, Math.min(1, v.volume + delta))
+        if (delta > 0 && v.muted) v.muted = false
+      }
+      toggleMute() { if (this.#video) this.#video.muted = !this.#video.muted }
+      toggleLoop() { this.#video && this.setLoop(!this.#video.loop) }
+      setLoop(on) {
+        const v = this.#video; if (!v) return
+        v.loop = on
+        this.#prefs.loop = on
+        this.#savePrefs()
+        const btn = this.#ui.els['vbtn-loop']
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false')
+      }
+      async toggleFullscreen() {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen()
+        } else if (this.#video?.requestFullscreen) {
+          await this.#video.requestFullscreen()
+        }
+      }
+      async togglePiP() {
+        const v = this.#video; if (!v) return
+        try {
+          if (document.pictureInPictureElement) await document.exitPictureInPicture()
+          else if (document.pictureInPictureEnabled) await v.requestPictureInPicture()
+          else this.#notify.warning('Picture-in-Picture is not supported here.')
+        } catch (err) {
+          this.#notify.error('PiP failed: ' + (err.message || err))
+        }
+      }
+      snapshot() {
+        const v = this.#video; if (!v) return
+        const canvas = document.createElement('canvas')
+        canvas.width = v.videoWidth
+        canvas.height = v.videoHeight
+        const ctx = canvas.getContext('2d')
+        try {
+          ctx.drawImage(v, 0, 0)
+          canvas.toBlob((blob) => {
+            if (!blob) { this.#notify.error('Snapshot failed.'); return }
+            const url = URL.createObjectURL(blob)
+            const a = Utils.el('a', {
+              href: url,
+              download: `${Utils.stripExt(this.#fileName) || 'video'}-${Math.round(v.currentTime)}s.png`,
+            })
+            document.body.appendChild(a); a.click(); a.remove()
+            URL.revokeObjectURL(url)
+            this.#notify.success('Snapshot saved.', { duration: 2500 })
+          }, 'image/png')
+        } catch (err) {
+          if (err.name === 'SecurityError') {
+            this.#notify.error('Snapshot blocked — remote videos need a CORS-enabled server.', { title: 'Cannot capture' })
+          } else {
+            this.#notify.error('Snapshot failed: ' + (err.message || err))
+          }
+        }
+      }
+
+      /* ─── Toolbar wiring ──────────────────────────────── */
+      #wireToolbar() {
+        const E = this.#ui.els
+        E['vbtn-play'].addEventListener('click', () => this.togglePlay())
+        E['vbtn-back10'].addEventListener('click', () => this.seek(-10))
+        E['vbtn-fwd10'].addEventListener('click', () => this.seek(+10))
+        E['vbtn-loop'].addEventListener('click', () => this.toggleLoop())
+        E['vbtn-mute'].addEventListener('click', () => this.toggleMute())
+        E['vbtn-pip'].addEventListener('click', () => this.togglePiP())
+        E['vbtn-snapshot'].addEventListener('click', () => this.snapshot())
+        E['vbtn-fullscreen'].addEventListener('click', () => this.toggleFullscreen())
+        E['vctrl-speed'].addEventListener('change', () => {
+          if (this.#video) this.#video.playbackRate = parseFloat(E['vctrl-speed'].value)
+        })
+      }
+
+      #syncToolbarFromVideo() {
+        const v = this.#video; if (!v) return
+        const E = this.#ui.els
+        E['vctrl-speed'].value = String(v.playbackRate)
+        E['vbtn-loop'].setAttribute('aria-pressed', v.loop ? 'true' : 'false')
+        this.#updatePlayButton()
+        this.#updateMuteButton()
+      }
+
+      #updatePlayButton() {
+        const v = this.#video; if (!v) return
+        const playing = !v.paused
+        Utils.setText(this.#ui.els['vbtn-play-label'], playing ? 'Pause' : 'Play')
+        // Swap icon: pause (two rects) when playing, triangle when paused.
+        const icon = this.#ui.els['vbtn-play-icon']
+        icon.innerHTML = playing
+          ? '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
+          : '<polygon points="5 3 19 12 5 21 5 3"/>'
+      }
+
+      #updateMuteButton() {
+        const v = this.#video; if (!v) return
+        Utils.setText(this.#ui.els['vbtn-mute-label'], v.muted || v.volume === 0 ? 'Unmute' : 'Mute')
+      }
+
+      #savePrefs() {
+        Storage.set(Config.VIDEO_PREFS_KEY, this.#prefs)
+      }
+    }
+
+    /* ═════════════════════════════ APP CONTROLLER ═════════════════════ */
+    class App {
+      constructor() {
+        this.bus = new EventBus()
+        this.theme = new ThemeManager(this.bus)
+        this.notify = new NotificationManager()
+        this.modal = new ModalManager()
+        this.kb = new Keyboard()
+        this.fileService = new FileService()
+        this.download = new DownloadManager()
+        this.sheets = new SheetManager()
+        this.recent = new RecentFiles()
+        this.ui = new UIManager()
+        this.table = new TableService(this.ui.els['handsontable-container'])
+        this.search = new SearchService(this.table)
+        this.autosave = new AutosaveManager({ sheets: this.sheets, ui: this.ui, notify: this.notify })
+        this.drag = new DragDropManager(this.ui.els['drop-overlay'], (f) => this.openFile(f))
+        this.videoCtl = new VideoController({ ui: this.ui, notify: this.notify })
+        this.pwa = new PWA({
+          installBtn: this.ui.els['install-btn'],
+          notify: this.notify,
+          // OS-launched files arrive with a writable FileSystemFileHandle — link
+          // them automatically so edits auto-save back without a second picker.
+          onLaunchedFile: (file, handle) => this.openFile(file, { handle }),
+        })
+
+        this.state = {
+          mode: null,        // 'csv' | 'xlsx' | 'docx' | null
+          fileName: '',
+          fileSize: 0,
+          dirty: false,
+        }
+        this.busy = false  // true while a file load is in flight
+        this.handle = null // FileSystemFileHandle when file is "linked" for auto-save
+        this.videoUrl = null // active blob URL for the video element (must be revoked)
+        this.fileSaveDebounced = Utils.debounce(() => this.#saveToFile(), Config.AUTOSAVE_DEBOUNCE_MS)
+      }
+
+      async init() {
+        Logger.info('booting v' + Config.VERSION)
+        this.theme.apply()
+        this.#renderThemeMenu()
+        this.#wireEvents()
+        this.#registerShortcuts()
+        this.drag.init()
+        this.pwa.init()
+        this.#renderRecentMenu()
+        await this.#checkAutosaveOnBoot()
+        Logger.info('ready')
+      }
+
+      /* ─── Event wiring ──────────────────────────────────── */
+      #wireEvents() {
+        const E = this.ui.els
+
+        E['input-file'].addEventListener('change', () => {
+          const file = E['input-file'].files[0]
+          E['input-file'].value = ''
+          if (file) this.openFile(file) // no handle — fallback path
+        })
+        E['open-btn'].addEventListener('click', () => this.#openWithPicker())
+        E['close-btn'].addEventListener('click', () => this.closeFile())
+        E['open-url-btn'].addEventListener('click', () => this.#openUrlPrompt())
+        E['link-btn'].addEventListener('click', () => {
+          if (this.handle) this.#unlinkFile()
+          else this.#linkCurrentFile()
+        })
+
+        E['download-csv-btn'].addEventListener('click', () => this.#downloadCsv())
+        E['download-xlsx-btn'].addEventListener('click', () => this.#downloadXlsx())
+
+        // Toolbar
+        E['btn-add-row'].addEventListener('click', () => this.#actionAddRow())
+        E['btn-del-row'].addEventListener('click', () => this.#actionDeleteRow())
+        E['btn-add-col'].addEventListener('click', () => this.#actionAddColumn())
+        E['btn-del-col'].addEventListener('click', () => this.#actionDeleteColumn())
+        E['btn-rename-col'].addEventListener('click', () => this.#actionRenameSelectedColumn())
+        E['btn-undo'].addEventListener('click', () => this.table.undo())
+        E['btn-redo'].addEventListener('click', () => this.table.redo())
+
+        // Find
+        E['btn-find'].addEventListener('click', () => this.#toggleFind(true))
+        E['find-close'].addEventListener('click', () => this.#toggleFind(false))
+        E['find-input'].addEventListener('input', Utils.debounce(() => {
+          const term = E['find-input'].value
+          const count = this.search.query(term)
+          Utils.setText(E['find-count'], term ? `${count} match${count === 1 ? '' : 'es'}` : '')
+        }, 120))
+        E['find-input'].addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') { e.preventDefault(); this.#toggleFind(false) }
+        })
+
+        // Menus (recent, theme)
+        this.#wireMenu(E['recent-btn'], E['recent-menu'], () => this.#renderRecentMenu())
+        this.#wireMenu(E['theme-btn'], E['theme-menu'], () => this.#renderThemeMenu())
+
+        // Help
+        E['help-btn'].addEventListener('click', () => this.#showHelp())
+
+        // Theme system changes
+        this.bus.on('theme:change', () => this.#renderThemeMenu())
+
+        // Table callbacks
+        this.table.onCellChange(() => this.#onTableChanged())
+        this.table.onStructureChange(() => this.#updateStatus())
+
+        // Unsaved-changes guard.
+        window.addEventListener('beforeunload', (e) => {
+          if (this.state.dirty) { e.preventDefault(); e.returnValue = '' }
+        })
+      }
+
+      #registerShortcuts() {
+        this.kb.register('Ctrl+O', () => this.#openWithPicker(), 'Open file')
+        this.kb.register('Ctrl+L', () => this.#openUrlPrompt(), 'Open from URL')
+        this.kb.register('Ctrl+S', () => { if (this.state.mode === 'csv' || this.state.mode === 'xlsx') this.#downloadXlsx() }, 'Download XLSX')
+        this.kb.register('Ctrl+F', () => { if (this.table.hot) this.#toggleFind(true) }, 'Find in sheet')
+        this.kb.register('Ctrl+/', () => this.#showHelp(), 'Show keyboard shortcuts')
+        this.kb.register('Escape', () => { if (!this.ui.els['find-bar'].hidden) this.#toggleFind(false) }, 'Close find / dialog')
+        this.kb.register('Alt+N', () => { if (this.table.hot) this.#addSheet() }, 'New sheet')
+        this.kb.register('Alt+W', () => this.closeFile(), 'Close file')
+
+        // Video shortcuts — only fire while a video is loaded.
+        const inVideo = () => this.state.mode === 'video' && this.videoCtl.video
+        this.kb.register('Space',       () => { if (inVideo()) this.videoCtl.togglePlay() },        'Video: play / pause')
+        this.kb.register('Left',        () => { if (inVideo()) this.videoCtl.seek(-5) },            'Video: back 5s')
+        this.kb.register('Right',       () => { if (inVideo()) this.videoCtl.seek(+5) },            'Video: forward 5s')
+        this.kb.register('Shift+Left',  () => { if (inVideo()) this.videoCtl.seek(-10) },           'Video: back 10s')
+        this.kb.register('Shift+Right', () => { if (inVideo()) this.videoCtl.seek(+10) },           'Video: forward 10s')
+        this.kb.register('Up',          () => { if (inVideo()) this.videoCtl.adjustVolume(+0.1) },  'Video: volume up')
+        this.kb.register('Down',        () => { if (inVideo()) this.videoCtl.adjustVolume(-0.1) },  'Video: volume down')
+        this.kb.register('M',           () => { if (inVideo()) this.videoCtl.toggleMute() },        'Video: mute')
+        this.kb.register('L',           () => { if (inVideo()) this.videoCtl.toggleLoop() },        'Video: loop')
+        this.kb.register('F',           () => { if (inVideo()) this.videoCtl.toggleFullscreen() },  'Video: fullscreen')
+      }
+
+      /* ─── Menus ─────────────────────────────────────────── */
+      #wireMenu(button, menu, onOpen) {
+        const close = () => {
+          menu.hidden = true
+          menu.style.left = ''
+          menu.style.right = ''
+          button.setAttribute('aria-expanded', 'false')
+          document.removeEventListener('mousedown', outsideClick, true)
+          document.removeEventListener('keydown', escClose)
+        }
+        const outsideClick = (e) => {
+          if (!menu.contains(e.target) && e.target !== button) close()
+        }
+        const escClose = (e) => { if (e.key === 'Escape') close() }
+
+        // After paint, if the right-anchored menu spills past the viewport's
+        // left edge, switch it to a left-anchored position relative to the
+        // anchor element so it stays fully visible.
+        const reposition = () => {
+          const rect = menu.getBoundingClientRect()
+          const margin = 8
+          if (rect.left < margin) {
+            const anchor = button.parentElement.getBoundingClientRect()
+            menu.style.right = 'auto'
+            menu.style.left = (margin - anchor.left) + 'px'
+          }
+        }
+
+        button.addEventListener('click', () => {
+          if (menu.hidden) {
+            onOpen?.()
+            menu.hidden = false
+            button.setAttribute('aria-expanded', 'true')
+            requestAnimationFrame(reposition)
+            // attach close handlers after this click finishes
+            setTimeout(() => {
+              document.addEventListener('mousedown', outsideClick, true)
+              document.addEventListener('keydown', escClose)
+            })
+          } else {
+            close()
+          }
+        })
+      }
+
+      #renderRecentMenu() {
+        const menu = this.ui.els['recent-menu']
+        menu.innerHTML = ''
+        menu.appendChild(Utils.el('div', { class: 'menu-section' }, 'Recent files'))
+        const list = this.recent.list()
+        if (!list.length) {
+          menu.appendChild(Utils.el('div', { class: 'menu-empty' }, 'No recent files yet'))
+          return
+        }
+        for (const file of list) {
+          const item = Utils.el('button', {
+            type: 'button',
+            class: 'menu-item',
+            role: 'menuitem',
+            title: file.name + ' — click to re-open from your computer',
+          })
+          const ext = (file.mode || 'file').toUpperCase()
+          item.appendChild(Utils.svg(['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z', 'M14 2v6h6']))
+          item.appendChild(Utils.el('span', { class: 'menu-item-label' }, file.name))
+          item.appendChild(Utils.el('span', { class: 'menu-meta' }, ext + ' · ' + Utils.formatRelative(file.ts)))
+          item.addEventListener('click', () => {
+            menu.hidden = true
+            this.notify.info('Recent files only remember names. Use Open to pick the file again.')
+            this.#openWithPicker()
+          })
+          menu.appendChild(item)
+        }
+        menu.appendChild(Utils.el('div', { class: 'menu-divider' }))
+        const clear = Utils.el('button', { type: 'button', class: 'menu-item', role: 'menuitem' },
+          'Clear recent files')
+        clear.addEventListener('click', () => {
+          this.recent.clear()
+          this.#renderRecentMenu()
+        })
+        menu.appendChild(clear)
+      }
+
+      #renderThemeMenu() {
+        const menu = this.ui.els['theme-menu']
+        menu.innerHTML = ''
+        const make = (label, key, iconPaths) => {
+          const item = Utils.el('button', {
+            type: 'button',
+            class: 'menu-item',
+            role: 'menuitemradio',
+            'aria-checked': this.theme.current === key ? 'true' : 'false',
+          })
+          item.appendChild(Utils.svg(iconPaths))
+          item.appendChild(Utils.el('span', {}, label))
+          item.addEventListener('click', () => {
+            this.theme.current = key
+            menu.hidden = true
+            this.ui.els['theme-btn'].setAttribute('aria-expanded', 'false')
+          })
+          return item
+        }
+        menu.appendChild(Utils.el('div', { class: 'menu-section' }, 'Theme'))
+        menu.appendChild(make('Light', 'light', ['M12 1v2', 'M12 21v2', 'M4.22 4.22l1.42 1.42', 'M18.36 18.36l1.42 1.42', 'M1 12h2', 'M21 12h2', 'M4.22 19.78l1.42-1.42', 'M18.36 5.64l1.42-1.42', 'M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z']))
+        menu.appendChild(make('Dark',  'dark',  ['M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z']))
+        menu.appendChild(make('System', 'system', ['M2 3h20v14H2z', 'M8 21h8', 'M12 17v4']))
+      }
+
+      /* ─── File lifecycle ────────────────────────────────── */
+      async openFile(file, opts = {}) {
+        if (this.busy) {
+          this.notify.warning('A file is already loading. Please wait.')
+          return
+        }
+        const validation = this.fileService.validate(file)
+        if (!validation.ok) {
+          this.notify.error(validation.reason, { title: 'Cannot open file' })
+          return
+        }
+        if (this.state.dirty) {
+          const ok = await this.modal.confirm(
+            'You have unsaved changes. Loading a new file will discard them. Continue?',
+            { title: 'Discard changes?', danger: true, confirmLabel: 'Discard & open' }
+          )
+          if (!ok) return
+        }
+
+        // Always reset handle; openWithPicker sets it again after a successful load.
+        this.handle = opts.handle || null
+
+        this.busy = true
+        try {
+          const mode = this.fileService.detectMode(file)
+          const loaders = {
+            csv: this.#loadCsv,
+            xlsx: this.#loadXlsx,
+            docx: this.#loadDocx,
+            video: this.#loadVideo,
+          }
+          await loaders[mode].call(this, file)
+          // View-only modes never auto-save back.
+          if (mode === 'docx' || mode === 'video') this.handle = null
+          if (this.handle) {
+            this.notify.success(
+              `Linked to “${file.name}”. Edits will auto-save back to this file.`,
+              { title: 'Auto-save linked' }
+            )
+            this.ui.setSaveStatus('saved-file')
+          }
+          this.#updateLinkButton()
+        } finally {
+          this.busy = false
+        }
+      }
+
+      async #openWithPicker() {
+        if (!this.fileService.hasFileSystemAccess()) {
+          this.ui.els['input-file'].click()
+          return
+        }
+        try {
+          const handle = await this.fileService.pickWritableForOpen()
+          const file = await handle.getFile()
+          await this.openFile(file, { handle })
+        } catch (err) {
+          if (err.name === 'AbortError') return
+          this.notify.error(err.message || 'Could not open file.', { title: 'Open failed' })
+        }
+      }
+
+      async #linkCurrentFile() {
+        if (!this.state.mode || this.state.mode === 'docx') return
+        if (!this.fileService.hasFileSystemAccess()) {
+          this.notify.warning('Auto-save to file needs the File System Access API (Chrome, Edge). Use Download instead.')
+          return
+        }
+        try {
+          const suggested = Utils.stripExt(this.state.fileName) + (this.state.mode === 'csv' ? '.csv' : '.xlsx')
+          const handle = await this.fileService.pickWritableForSave(suggested, this.state.mode)
+          this.handle = handle
+          await this.#saveToFile() // write the current state immediately
+          this.#updateLinkButton()
+          this.notify.success(
+            `Linked. Edits will auto-save to “${handle.name}”.`,
+            { title: 'Auto-save linked' }
+          )
+        } catch (err) {
+          if (err.name === 'AbortError') return
+          this.notify.error(err.message || 'Could not link file.')
+        }
+      }
+
+      #unlinkFile() {
+        if (!this.handle) return
+        this.handle = null
+        this.#updateLinkButton()
+        this.ui.setSaveStatus('saved')
+        this.notify.info('Unlinked. Edits will only autosave locally.')
+      }
+
+      /* ─── Open from URL ─────────────────────────────────── */
+      async #openUrlPrompt() {
+        const url = await this.modal.prompt(
+          'Paste a URL. Direct video URLs play instantly. CSV / XLSX / DOCX URLs require the server to allow cross-origin requests (CORS).',
+          '',
+          {
+            title: 'Open from URL',
+            icon: 'primary',
+            inputLabel: 'URL',
+            placeholder: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+            confirmLabel: 'Load',
+            validate: (v) => {
+              const t = v.trim()
+              if (!t) return 'URL cannot be empty.'
+              try {
+                const u = new URL(t)
+                if (u.protocol !== 'http:' && u.protocol !== 'https:') return 'Only http and https URLs are supported.'
+              } catch { return 'Not a valid URL.' }
+              return null
+            },
+          }
+        )
+        if (url == null) return
+        await this.#loadFromUrl(url.trim())
+      }
+
+      async #loadFromUrl(url) {
+        let parsed
+        try { parsed = new URL(url) }
+        catch { this.notify.error('Invalid URL.'); return }
+
+        // Filename from the URL path (or hostname if it's just a domain).
+        const segs = parsed.pathname.split('/').filter(Boolean)
+        const fileName = segs.length ? decodeURIComponent(segs[segs.length - 1]) : parsed.hostname
+
+        // Detect by extension from the URL filename.
+        const mode = this.fileService.detectMode({ name: fileName, size: 1, type: '' })
+
+        if (mode === 'video' || !mode) {
+          if (!mode) this.notify.info('No recognized extension — treating URL as video.')
+          await this.#loadVideoFromUrl(url, fileName)
+          return
+        }
+        // CSV / XLSX / DOCX → fetch into a Blob, then push through normal pipeline.
+        if (this.state.dirty) {
+          const ok = await this.modal.confirm(
+            'You have unsaved changes. Loading a new file will discard them. Continue?',
+            { title: 'Discard changes?', danger: true, confirmLabel: 'Discard & open' }
+          )
+          if (!ok) return
+        }
+        this.ui.showLoading('Downloading from URL…')
+        try {
+          const res = await fetch(url)
+          if (!res.ok) throw new Error('Server responded ' + res.status)
+          const blob = await res.blob()
+          const file = new File([blob], fileName, { type: blob.type || '' })
+          this.ui.hideLoading()
+          await this.openFile(file)
+        } catch (err) {
+          this.ui.hideLoading()
+          this.notify.error(
+            'Could not download. The server may not allow cross-origin requests (CORS). ' + (err.message || err),
+            { title: 'Download failed', duration: 8000 }
+          )
+        }
+      }
+
+      async #loadVideoFromUrl(url, fileName) {
+        if (this.busy) { this.notify.warning('A file is already loading.'); return }
+        if (this.state.dirty) {
+          const ok = await this.modal.confirm(
+            'You have unsaved changes. Loading a new video will discard them. Continue?',
+            { title: 'Discard changes?', danger: true, confirmLabel: 'Discard & load' }
+          )
+          if (!ok) return
+        }
+        this.busy = true
+        try {
+          this.#tearDownVideo()
+          this.handle = null
+          this.sheets.reset()
+          this.state = { mode: 'video', fileName, fileSize: 0, dirty: false }
+          this.ui.setFileInfo({ name: fileName, size: 0, mode: 'video', sheetCount: 0 })
+          this.ui.setActionButtons('video')
+          this.ui.showView('video')
+          this.ui.clearStatus()
+          this.#updateLinkButton()
+          this.recent.add({ name: fileName, size: 0, mode: 'video' })
+
+          this.videoCtl.load(url, fileName, {
+            onLoadedMetadata: (video) => {
+              const mins = Math.floor(video.duration / 60)
+              const secs = Math.floor(video.duration % 60).toString().padStart(2, '0')
+              const extra = isFinite(video.duration)
+                ? ` · ${video.videoWidth}×${video.videoHeight} · ${mins}:${secs}`
+                : ` · ${video.videoWidth}×${video.videoHeight}`
+              Utils.setText(
+                this.ui.els['file-meta'],
+                `Remote · Video · view only${extra}`
+              )
+            },
+            onError: () => {
+              const container = this.ui.els['video-container']
+              container.appendChild(Utils.el('div', { class: 'video-error' },
+                'Could not load this video. Check the URL, network, or that the format is supported by your browser.'))
+              this.notify.error('Video URL failed to load.', { title: 'Playback error' })
+            },
+          })
+          this.notify.success(fileName + ' loading…', { title: 'URL opened' })
+        } finally {
+          this.busy = false
+        }
+      }
+
+      async closeFile() {
+        if (!this.state.mode) return
+        if (this.state.dirty) {
+          const ok = await this.modal.confirm(
+            'Discard unsaved changes and close this file?',
+            { title: 'Close file?', danger: true, confirmLabel: 'Discard & close' }
+          )
+          if (!ok) return
+        }
+        // If a linked file is dirty, flush a final write before closing.
+        if (this.handle && this.state.dirty) {
+          try { this.fileSaveDebounced.flush() } catch { /* ignore */ }
+        }
+        this.autosave.flush()
+        this.autosave.clear()
+        this.table.destroy()
+        this.ui.els['docx-container'].innerHTML = ''
+        this.#tearDownVideo()
+        this.ui.els['sheet-tabs'].innerHTML = ''
+        this.sheets.reset()
+        this.handle = null
+        this.state = { mode: null, fileName: '', fileSize: 0, dirty: false }
+        this.ui.clearFileInfo()
+        this.ui.clearStatus()
+        this.ui.setSaveStatus(null)
+        this.ui.setActionButtons(null)
+        this.#updateLinkButton()
+        this.ui.showView('empty')
+        Logger.info('file closed')
+      }
+
+      #updateLinkButton() {
+        const btn = this.ui.els['link-btn']
+        if (!this.state.mode || this.state.mode === 'docx' || this.state.mode === 'video') { btn.hidden = true; return }
+        btn.hidden = false
+        const linked = !!this.handle
+        btn.title = linked
+          ? `Linked — auto-saving to file. Click to unlink.`
+          : (this.fileService.hasFileSystemAccess()
+              ? 'Click to link a file for auto-save'
+              : 'Auto-save to file requires Chrome or Edge')
+        btn.setAttribute('aria-label', btn.title)
+        btn.style.color = linked ? 'var(--success)' : ''
+      }
+
+      async #saveToFile() {
+        if (!this.handle || this.state.mode === 'docx' || !this.state.mode) return
+        try {
+          this.ui.setSaveStatus('saving')
+          let blob
+          if (this.state.mode === 'csv') {
+            const { headers, data } = this.sheets.cache[this.sheets.currentSheetName]
+            const csv = Papa.unparse(
+              [headers, ...data].map((row) => row.map(Utils.sanitizeFormula))
+            )
+            blob = new Blob(['﻿', csv], { type: 'text/csv;charset=utf-8;' })
+          } else {
+            const wb = XLSX.utils.book_new()
+            for (const name of this.sheets.sheetNames) {
+              const cached = this.sheets.cache[name]
+              const aoa = [cached.headers.map(Utils.sanitizeFormula)]
+                .concat(cached.data.map((r) => r.map(Utils.sanitizeFormula)))
+              XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), name)
+            }
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+            blob = new Blob([wbout], { type: 'application/octet-stream' })
+          }
+          await this.fileService.writeToHandle(this.handle, blob)
+          this.state.dirty = false
+          this.ui.setUnsaved(false)
+          this.ui.setSaveStatus('saved-file')
+        } catch (err) {
+          Logger.error('file save failed', err)
+          this.ui.setSaveStatus('error')
+          this.notify.error('Auto-save to file failed: ' + (err.message || err))
+          // If permission was revoked or file was deleted, drop the handle so we
+          // stop pestering the user every keystroke.
+          if (err.name === 'NotAllowedError' || err.name === 'NotFoundError') {
+            this.handle = null
+            this.#updateLinkButton()
+          }
+        }
+      }
+
+      async #loadCsv(file) {
+        this.ui.showLoading('Reading CSV…')
+        try {
+          const text = await this.fileService.read(file, 'text')
+          await Utils.yieldToBrowser()
+          const sheetName = 'Sheet1'
+          this.sheets.reset()
+          this.sheets.sheetNames = [sheetName]
+          this.sheets.cache[sheetName] = this.sheets.csvToTable(text)
+          this.sheets.currentSheetName = sheetName
+          this.#afterLoad(file, 'csv')
+          this.notify.success(file.name + ' opened.', { title: 'Loaded' })
+        } catch (err) {
+          this.#loadError(err)
+        } finally {
+          this.ui.hideLoading()
+        }
+      }
+
+      async #loadXlsx(file) {
+        this.ui.showLoading('Parsing spreadsheet…')
+        try {
+          const buf = await this.fileService.read(file, 'array')
+          await Utils.yieldToBrowser()
+          const workbook = XLSX.read(new Uint8Array(buf), { type: 'array' })
+          await Utils.yieldToBrowser()
+          this.sheets.reset()
+          this.sheets.sheetNames = workbook.SheetNames.slice()
+          for (const name of this.sheets.sheetNames) {
+            const csv = XLSX.utils.sheet_to_csv(workbook.Sheets[name])
+            this.sheets.cache[name] = this.sheets.csvToTable(csv)
+          }
+          this.sheets.currentSheetName = this.sheets.sheetNames[0]
+          this.#afterLoad(file, 'xlsx')
+          this.notify.success(`${file.name} opened (${this.sheets.sheetNames.length} sheet${this.sheets.sheetNames.length === 1 ? '' : 's'}).`, { title: 'Loaded' })
+        } catch (err) {
+          this.#loadError(err)
+        } finally {
+          this.ui.hideLoading()
+        }
+      }
+
+      async #loadVideo(file) {
+        try {
+          this.#tearDownVideo()
+          this.videoUrl = URL.createObjectURL(file)
+
+          this.sheets.reset()
+          this.state = { mode: 'video', fileName: file.name, fileSize: file.size, dirty: false }
+          this.ui.setFileInfo({ name: file.name, size: file.size, mode: 'video', sheetCount: 0 })
+          this.ui.setActionButtons('video')
+          this.ui.showView('video')
+          this.ui.clearStatus()
+          this.recent.add({ name: file.name, size: file.size, mode: 'video' })
+
+          this.videoCtl.load(this.videoUrl, file.name, {
+            onLoadedMetadata: (video) => {
+              const mins = Math.floor(video.duration / 60)
+              const secs = Math.floor(video.duration % 60).toString().padStart(2, '0')
+              const extra = isFinite(video.duration)
+                ? ` · ${video.videoWidth}×${video.videoHeight} · ${mins}:${secs}`
+                : ` · ${video.videoWidth}×${video.videoHeight}`
+              Utils.setText(
+                this.ui.els['file-meta'],
+                `${Utils.formatBytes(file.size)} · Video · view only${extra}`
+              )
+            },
+            onError: () => {
+              const container = this.ui.els['video-container']
+              container.appendChild(Utils.el('div', { class: 'video-error' },
+                'Could not play this video. The format may not be supported by your browser. Try MP4 (H.264) or WebM.'))
+              this.notify.error('Unsupported video format.', { title: 'Playback error' })
+            },
+          })
+          this.notify.success(file.name + ' loaded.', { title: 'Loaded' })
+        } catch (err) {
+          this.#loadError(err)
+        }
+      }
+
+      #tearDownVideo() {
+        if (this.videoUrl) { URL.revokeObjectURL(this.videoUrl); this.videoUrl = null }
+        if (this.videoCtl) this.videoCtl.teardown()
+      }
+
+      async #loadDocx(file) {
+        this.ui.showLoading('Rendering document…')
+        try {
+          const buf = await this.fileService.read(file, 'array')
+          this.sheets.reset()
+          this.state = { mode: 'docx', fileName: file.name, fileSize: file.size, dirty: false }
+          this.ui.setFileInfo({ name: file.name, size: file.size, mode: 'docx', sheetCount: 0 })
+          this.ui.setActionButtons('docx')
+          this.ui.showView('docx')
+          this.ui.clearStatus()
+          this.recent.add({ name: file.name, size: file.size, mode: 'docx' })
+          const container = this.ui.els['docx-container']
+          container.innerHTML = ''
+          await docx.renderAsync(new Uint8Array(buf), container, null, {
+            className: 'docx',
+            inWrapper: true,
+            breakPages: true,
+            experimental: true,
+          })
+          this.notify.success(file.name + ' rendered.', { title: 'Loaded' })
+        } catch (err) {
+          this.#loadError(err)
+          const container = this.ui.els['docx-container']
+          container.innerHTML = ''
+          const box = Utils.el('div', { class: 'docx-error' },
+            'Could not render this DOCX file: ' + (err?.message || String(err)))
+          container.appendChild(box)
+        } finally {
+          this.ui.hideLoading()
+        }
+      }
+
+      #afterLoad(file, mode) {
+        this.ui.els['docx-container'].innerHTML = '' // drop any prior DOCX render
+        this.#tearDownVideo() // and any prior video
+        this.state = { mode, fileName: file.name, fileSize: file.size, dirty: false }
+        this.ui.setFileInfo({ name: file.name, size: file.size, mode, sheetCount: this.sheets.sheetNames.length })
+        this.ui.setActionButtons(mode)
+        this.ui.showView('table')
+        this.#renderTable()
+        this.#renderSheetTabs()
+        this.recent.add({ name: file.name, size: file.size, mode })
+      }
+
+      #loadError(err) {
+        Logger.error('load failed', err)
+        this.notify.error(err?.message || 'Failed to load file.', { title: 'Load error' })
+      }
+
+      /* ─── Table integration ─────────────────────────────── */
+      #renderTable() {
+        const sheet = this.sheets.cache[this.sheets.currentSheetName]
+        this.table.render(sheet.headers, sheet.data, {
+          onRenameColumn: (col) => this.#promptRenameColumn(col),
+        })
+        this.#updateStatus()
+      }
+
+      #captureCurrent() {
+        if (!this.table.hot) return
+        this.sheets.capture(this.table.headers(), this.table.data())
+      }
+
+      #updateStatus() {
+        if (!this.table.hot) { this.ui.clearStatus(); return }
+        this.ui.setStatus({
+          rows: this.table.rowCount(),
+          cols: this.table.colCount(),
+          sheetName: this.sheets.currentSheetName,
+          selection: this.table.selectionStats(),
+        })
+      }
+
+      #onTableChanged() {
+        this.state.dirty = true
+        this.ui.setUnsaved(true)
+        this.#updateStatus()
+        this.#requestAutosave()
+      }
+
+      #requestAutosave() {
+        if (this.state.mode !== 'csv' && this.state.mode !== 'xlsx') return
+        this.#captureCurrent()
+        this.autosave.requestSave({
+          mode: this.state.mode,
+          fileName: this.state.fileName,
+          fileSize: this.state.fileSize,
+        })
+        // If a writable handle is bound, also schedule a write-back to disk.
+        if (this.handle) this.fileSaveDebounced()
+      }
+
+      /* ─── Sheet UI ──────────────────────────────────────── */
+      #renderSheetTabs() {
+        const el = this.ui.els['sheet-tabs']
+        el.innerHTML = ''
+        for (const name of this.sheets.sheetNames) {
+          const tab = Utils.el('div', {
+            class: 'sheet-tab',
+            role: 'tab',
+            'aria-selected': name === this.sheets.currentSheetName ? 'true' : 'false',
+            tabindex: '0',
+          })
+          const label = Utils.el('span', { class: 'sheet-tab-label', title: name + ' — double-click to rename' }, name)
+          label.addEventListener('click', () => this.#switchSheet(name))
+          label.addEventListener('dblclick', (e) => { e.stopPropagation(); this.#renameSheet(name) })
+          tab.appendChild(label)
+          const close = Utils.el('button', { type: 'button', class: 'sheet-tab-close', 'aria-label': 'Delete sheet ' + name, title: 'Delete sheet' }, '×')
+          close.addEventListener('click', (e) => { e.stopPropagation(); this.#deleteSheet(name) })
+          tab.appendChild(close)
+          tab.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.#switchSheet(name) }
+            if (e.key === 'F2') { e.preventDefault(); this.#renameSheet(name) }
+            if (e.key === 'Delete') { e.preventDefault(); this.#deleteSheet(name) }
+          })
+          el.appendChild(tab)
+        }
+        const addBtn = Utils.el('button', { type: 'button', class: 'sheet-tab-add', 'aria-label': 'Add sheet', title: 'Add new sheet' }, '+')
+        addBtn.addEventListener('click', () => this.#addSheet())
+        el.appendChild(addBtn)
+        el.hidden = false
+      }
+
+      #switchSheet(name) {
+        if (name === this.sheets.currentSheetName) return
+        this.#captureCurrent()
+        this.sheets.setCurrent(name)
+        this.#renderTable()
+        this.#renderSheetTabs()
+        // Search state is per-HoT-instance; clear stale find UI on switch.
+        if (!this.ui.els['find-bar'].hidden) this.#toggleFind(false)
+      }
+
+      #addSheet() {
+        this.#captureCurrent()
+        const name = this.sheets.add()
+        this.sheets.setCurrent(name)
+        this.#renderTable()
+        this.#renderSheetTabs()
+        this.ui.updateMeta({ size: this.state.fileSize, mode: this.state.mode, sheetCount: this.sheets.sheetNames.length })
+        this.state.dirty = true
+        this.ui.setUnsaved(true)
+        this.#requestAutosave()
+        this.notify.success(`Sheet “${name}” added.`)
+      }
+
+      async #renameSheet(oldName) {
+        const newName = await this.modal.prompt('Rename sheet:', oldName, {
+          title: 'Rename sheet',
+          icon: 'primary',
+          inputLabel: 'Sheet name',
+          validate: (v) => {
+            const trimmed = v.trim()
+            if (trimmed === oldName) return null
+            const err = this.sheets.validateName(trimmed)
+            if (err) return err
+            if (this.sheets.sheetNames.includes(trimmed)) return 'A sheet with this name already exists.'
+            return null
+          },
+        })
+        if (newName == null) return
+        const trimmed = newName.trim()
+        if (trimmed === oldName) return
+        try {
+          this.#captureCurrent()
+          this.sheets.rename(oldName, trimmed)
+          this.#renderSheetTabs()
+          this.#updateStatus()
+          this.state.dirty = true
+          this.ui.setUnsaved(true)
+          this.#requestAutosave()
+          this.notify.success(`Renamed to “${trimmed}”.`)
+        } catch (err) {
+          this.notify.error(err.message)
+        }
+      }
+
+      async #deleteSheet(name) {
+        if (this.sheets.sheetNames.length <= 1) {
+          this.notify.warning('Cannot delete the last sheet.')
+          return
+        }
+        const ok = await this.modal.confirm(
+          `Delete sheet “${name}”? This cannot be undone.`,
+          { title: 'Delete sheet?', danger: true, confirmLabel: 'Delete' }
+        )
+        if (!ok) return
+        try {
+          this.sheets.delete(name)
+          if (this.sheets.currentSheetName) this.#renderTable()
+          this.#renderSheetTabs()
+          this.ui.updateMeta({ size: this.state.fileSize, mode: this.state.mode, sheetCount: this.sheets.sheetNames.length })
+          this.#updateStatus()
+          this.state.dirty = true
+          this.ui.setUnsaved(true)
+          this.#requestAutosave()
+          this.notify.success(`Sheet “${name}” deleted.`)
+        } catch (err) {
+          this.notify.error(err.message)
+        }
+      }
+
+      /* ─── Column actions ────────────────────────────────── */
+      async #promptRenameColumn(col) {
+        if (col == null || col < 0 || !this.table.hot) return
+        const headers = this.table.headers()
+        const newName = await this.modal.prompt('Rename column:', headers[col] != null ? String(headers[col]) : '', {
+          title: 'Rename column',
+          icon: 'primary',
+        })
+        if (newName == null) return
+        headers[col] = newName
+        this.table.setHeaders(headers)
+        this.state.dirty = true
+        this.ui.setUnsaved(true)
+        this.#requestAutosave()
+      }
+
+      #actionRenameSelectedColumn() {
+        const sel = this.table.selection()
+        if (!sel) { this.notify.warning('Select a column first.'); return }
+        this.#promptRenameColumn(sel.col)
+      }
+
+      #readQty(el, max) {
+        const n = parseInt(el.value, 10)
+        if (!isFinite(n) || n < 1) { el.value = '1'; return 1 }
+        const clamped = Math.min(n, max)
+        if (clamped !== n) el.value = String(clamped)
+        return clamped
+      }
+
+      #actionAddRow() {
+        if (!this.table.hot) return
+        const qty = this.#readQty(this.ui.els['qty-row'], Config.ROW_QTY_MAX)
+        const sel = this.table.selection()
+        const index = sel ? sel.endRow : this.table.rowCount() - 1
+        this.table.alter('insert_row_below', Math.max(0, index), qty)
+      }
+      #actionDeleteRow() {
+        if (!this.table.hot) return
+        const sel = this.table.selection()
+        if (!sel) { this.notify.warning('Select a row first.'); return }
+        const count = sel.endRow - sel.row + 1
+        if (this.table.rowCount() - count < 1) { this.notify.warning('Cannot delete the last row.'); return }
+        this.table.alter('remove_row', sel.row, count)
+      }
+      #actionAddColumn() {
+        if (!this.table.hot) return
+        const qty = this.#readQty(this.ui.els['qty-col'], Config.COL_QTY_MAX)
+        const sel = this.table.selection()
+        const index = sel ? sel.endCol : this.table.colCount() - 1
+        this.table.alter('insert_col_end', Math.max(0, index), qty)
+      }
+      #actionDeleteColumn() {
+        if (!this.table.hot) return
+        const sel = this.table.selection()
+        if (!sel) { this.notify.warning('Select a column first.'); return }
+        const count = sel.endCol - sel.col + 1
+        if (this.table.colCount() - count < 1) { this.notify.warning('Cannot delete the last column.'); return }
+        this.table.alter('remove_col', sel.col, count)
+      }
+
+      /* ─── Find bar ──────────────────────────────────────── */
+      #toggleFind(open) {
+        const bar = this.ui.els['find-bar']
+        const input = this.ui.els['find-input']
+        if (open) {
+          bar.hidden = false
+          input.focus()
+          input.select()
+        } else {
+          bar.hidden = true
+          input.value = ''
+          Utils.setText(this.ui.els['find-count'], '')
+          this.search.clear()
+        }
+      }
+
+      /* ─── Downloads ─────────────────────────────────────── */
+      #downloadCsv() {
+        if (!this.table.hot) return
+        this.#captureCurrent()
+        const { headers, data } = this.sheets.cache[this.sheets.currentSheetName]
+        this.download.csv([headers].concat(data), Utils.stripExt(this.state.fileName) + '.csv')
+        this.notify.success('CSV downloaded.', { duration: 2500 })
+      }
+
+      #downloadXlsx() {
+        if (!this.table.hot) return
+        this.#captureCurrent()
+        const sheetData = this.sheets.sheetNames.map((name) => ({
+          name,
+          headers: this.sheets.cache[name].headers,
+          data: this.sheets.cache[name].data,
+        }))
+        this.download.xlsx(sheetData, Utils.stripExt(this.state.fileName) + '.xlsx')
+        this.state.dirty = false
+        this.ui.setUnsaved(false)
+        this.autosave.clear()
+        this.notify.success('XLSX downloaded.', { duration: 2500 })
+      }
+
+      /* ─── Help modal ────────────────────────────────────── */
+      #showHelp() {
+        const list = this.kb.list()
+        const dl = Utils.el('dl', { class: 'shortcut-list' })
+        for (const s of list) {
+          dl.appendChild(Utils.el('dt', {}, s.description))
+          const dd = Utils.el('dd', {})
+          for (const part of s.combo.split('+')) {
+            dd.appendChild(Utils.el('span', { class: 'kbd' }, part.trim()))
+          }
+          dl.appendChild(dd)
+        }
+        const note = Utils.el('p', {
+          style: 'margin-top:16px;color:var(--text-muted);font-size:12px;',
+        }, 'Tip: most shortcuts work even while the table has focus.')
+        const content = Utils.el('div', {}, dl, note)
+        this.modal.open({
+          title: 'Keyboard shortcuts',
+          icon: 'info',
+          content,
+          wide: true,
+          actions: [{ label: 'Close', variant: 'primary', value: true }],
+          escResult: true,
+        })
+      }
+
+      /* ─── Autosave session restore ──────────────────────── */
+      async #checkAutosaveOnBoot() {
+        if (!this.autosave.hasSession()) return
+        const session = this.autosave.load()
+        const when = Utils.formatRelative(session.ts)
+        const fileLabel = session.fileName ? `"${session.fileName}"` : 'previous workbook'
+        const restore = await this.modal.confirm(
+          `Restore unsaved session for ${fileLabel} from ${when}?`,
+          {
+            title: 'Restore session?',
+            icon: 'info',
+            confirmLabel: 'Restore',
+            cancelLabel: 'Discard',
+          }
+        )
+        if (restore) {
+          try {
+            this.sheets.reset()
+            this.sheets.sheetNames = session.sheetNames
+            for (const [k, v] of Object.entries(session.cache)) this.sheets.cache[k] = v
+            this.sheets.currentSheetName = session.currentSheet || session.sheetNames[0]
+            this.state = {
+              mode: session.mode,
+              fileName: session.fileName || 'restored.xlsx',
+              fileSize: session.fileSize || 0,
+              dirty: true,
+            }
+            this.ui.setFileInfo({
+              name: this.state.fileName,
+              size: this.state.fileSize,
+              mode: this.state.mode,
+              sheetCount: this.sheets.sheetNames.length,
+            })
+            this.ui.setActionButtons(this.state.mode)
+            this.ui.showView('table')
+            this.#renderTable()
+            this.#renderSheetTabs()
+            this.ui.setUnsaved(true)
+            this.#updateLinkButton()
+            this.notify.success('Session restored from autosave.', { title: 'Restored' })
+          } catch (err) {
+            Logger.error('restore failed', err)
+            this.notify.error('Could not restore session.')
+            this.autosave.clear()
+          }
+        } else {
+          this.autosave.clear()
+        }
+      }
+    }
+
+    /* ═════════════════════════════ BOOTSTRAP ══════════════════════════ */
+    document.addEventListener('DOMContentLoaded', () => {
+      const app = new App()
+      window.__APP__ = app // for debugging in DevTools
+      app.init().catch((err) => {
+        Logger.error('boot failed', err)
+        new NotificationManager().error(err?.message || 'Application failed to start.', { title: 'Startup error' })
+      })
+    })
+  })()
+  </script>
+</body>
+</html>
