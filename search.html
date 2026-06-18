@@ -545,6 +545,8 @@
                     <div class="auth-buttons d-flex gap-2">
                         <button class="btn btn-primary add-book-btn" style="display: none;"
                             onclick="openBookModal('add')">Add Book</button>
+                        <button class="btn btn-secondary import-btn" style="display: none;"
+                            onclick="triggerImport()">Import JSON</button>
                         <button class="btn btn-primary signin-btn">Sign In</button>
                         <button class="btn signout-btn" style="display: none;">Sign Out</button>
                     </div>
@@ -552,7 +554,7 @@
             </div>
         </div>
     </nav>
-
+ 
     <div class="container my-5">
         <div id="app">
             <!-- Bookmarks will be rendered here by JavaScript -->
@@ -561,7 +563,7 @@
             </div>
         </div>
     </div>
-
+ 
     <div class="modal fade" id="addOrEditBookModal" tabindex="-1" aria-labelledby="addOrEditBookModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -610,6 +612,8 @@
             </div>
         </div>
     </div>
+ 
+    <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="handleImportFile(event)">
 
 
     <script>
@@ -654,7 +658,7 @@
         const JSON_FILE_NAME = "data.json";
         const DEFAULT_JSON_CONTENT = '[]';
         let tokenClient;
-        let signinButton, signoutButton, addBookButton, appContainer, loadingMessage;
+        let signinButton, signoutButton, addBookButton, importButton, appContainer, loadingMessage;
         let addOrEditBookModal;
         let gapiInited = false;
         let gisInited = false;
@@ -693,6 +697,7 @@
             signinButton = document.querySelector('.signin-btn');
             signoutButton = document.querySelector('.signout-btn');
             addBookButton = document.querySelector('.add-book-btn');
+            importButton = document.querySelector('.import-btn');
             appContainer = document.getElementById('app');
             loadingMessage = document.getElementById('loading-message');
             addOrEditBookModal = new bootstrap.Modal(document.getElementById('addOrEditBookModal'));
@@ -732,6 +737,7 @@
                     signinButton.style.display = 'block';
                     signoutButton.style.display = 'none';
                     addBookButton.style.display = 'none';
+                    importButton.style.display = 'none';
                     appContainer.innerHTML = '<div id="loading-message">Please sign in to load content from Google Drive.</div>';
                     books = [];
                 });
@@ -742,6 +748,7 @@
             signinButton.style.display = 'none';
             signoutButton.style.display = 'block';
             addBookButton.style.display = 'block';
+            importButton.style.display = 'block';
             loadingMessage.innerHTML = 'Checking/Creating Google Drive files...';
             await checkAndCreateJsonFile();
         }
@@ -909,6 +916,102 @@
                 onConfirm();
                 customConfirmModal.hide();
             };
+        }
+
+        // Custom Alert Modal (replaces browser's alert)
+        function showCustomAlert(title, message) {
+            const modalHtml = `
+                <div class="modal fade" id="customAlertModal" tabindex="-1" aria-labelledby="customAlertModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content p-2">
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title" id="customAlertModalLabel">${title}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>${message}</p>
+                            </div>
+                            <div class="modal-footer border-0">
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            const existingModal = document.getElementById('customAlertModal');
+            if (existingModal) existingModal.remove();
+
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            const customAlertModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
+            customAlertModal.show();
+        }
+
+        function triggerImport() {
+            document.getElementById('importFileInput').click();
+        }
+
+        function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    let bookmarksToImport = [];
+                    if (Array.isArray(importedData)) {
+                        bookmarksToImport = importedData;
+                    } else if (importedData && typeof importedData === 'object') {
+                        if (Array.isArray(importedData.bookmarks)) {
+                            bookmarksToImport = importedData.bookmarks;
+                        } else if (Array.isArray(importedData.books)) {
+                            bookmarksToImport = importedData.books;
+                        } else {
+                            bookmarksToImport = [importedData];
+                        }
+                    } else {
+                        throw new Error("Invalid structure");
+                    }
+
+                    const sanitized = [];
+                    for (const item of bookmarksToImport) {
+                        if (!item || typeof item !== 'object') continue;
+                        
+                        const title = (item.title || item.name || '').trim();
+                        const link = (item.link || item.url || '').trim();
+                        if (!title && !link) continue;
+
+                        sanitized.push({
+                            id: item.id || generateUniqueId(),
+                            title: title || 'Untitled Bookmark',
+                            description: (item.description || item.desc || '').trim(),
+                            link: link,
+                            reflinka: (item.reflinka || item.ref1 || '').trim(),
+                            reflinkb: (item.reflinkb || item.ref2 || '').trim(),
+                            reflinkc: (item.reflinkc || item.ref3 || '').trim(),
+                        });
+                    }
+
+                    if (sanitized.length === 0) {
+                        showCustomAlert('Import Failed', 'No valid bookmarks found in the JSON file.');
+                        event.target.value = '';
+                        return;
+                    }
+
+                    showCustomConfirm(`Found ${sanitized.length} bookmarks. Do you want to import them?`, async () => {
+                        books = [...books, ...sanitized];
+                        await saveBooksToDrive();
+                        showCustomAlert('Success', `Successfully imported ${sanitized.length} bookmarks!`);
+                    });
+
+                } catch (err) {
+                    showCustomAlert('Import Error', 'Failed to parse JSON file. Please ensure it is valid JSON.');
+                    console.error("Import error:", err);
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
         }
 
         const render = (data) => {
