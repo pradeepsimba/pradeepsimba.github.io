@@ -659,7 +659,8 @@
 
         // --- GOOGLE DRIVE FILE MANAGEMENT ---
         async function checkAndCreateAppDataFolder() {
-            let folderId = localStorage.getItem('app_folder_id');
+            const FOLDER_ID_KEY = `drive_folder_id::${APP_FOLDER_NAME}`;
+            let folderId = localStorage.getItem(FOLDER_ID_KEY);
             if (folderId) {
                 try {
                     const res = await gapi.client.drive.files.get({ fileId: folderId, fields: 'id, trashed' });
@@ -673,7 +674,7 @@
                 const createRes = await gapi.client.drive.files.create({ resource: { name: APP_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }, fields: 'id' });
                 folderId = createRes.result.id;
             }
-            localStorage.setItem('app_folder_id', folderId);
+            localStorage.setItem(FOLDER_ID_KEY, folderId);
             return folderId;
         }
 

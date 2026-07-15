@@ -754,13 +754,14 @@
         }
 
         async function checkAndCreateAppDataFolder() {
-            let folderId = localStorage.getItem('app_folder_id');
+            const FOLDER_ID_KEY = `drive_folder_id::${APP_FOLDER_NAME}`;
+            let folderId = localStorage.getItem(FOLDER_ID_KEY);
             if (folderId) {
                 try {
                     const response = await gapi.client.drive.files.get({ fileId: folderId, fields: 'id, name, mimeType, trashed' });
                     if (response.result && response.result.mimeType === 'application/vnd.google-apps.folder' && !response.result.trashed) return folderId;
-                    else localStorage.removeItem('app_folder_id');
-                } catch (error) { localStorage.removeItem('app_folder_id'); }
+                    else localStorage.removeItem(FOLDER_ID_KEY);
+                } catch (error) { localStorage.removeItem(FOLDER_ID_KEY); }
             }
             const response = await gapi.client.drive.files.list({ q: `name = '${APP_FOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`, fields: 'files(id)' });
             if (response.result.files && response.result.files.length > 0) {
@@ -769,14 +770,15 @@
                 const folderResponse = await gapi.client.drive.files.create({ resource: { name: APP_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }, fields: 'id' });
                 folderId = folderResponse.result.id;
             }
-            localStorage.setItem('app_folder_id', folderId);
+            localStorage.setItem(FOLDER_ID_KEY, folderId);
             return folderId;
         }
 
         async function checkAndCreateJsonFile() {
             try {
                 const appFolderId = await checkAndCreateAppDataFolder();
-                let fileId = localStorage.getItem('google_drive_json_file_id');
+                const FILE_ID_KEY = `drive_file_id::${APP_FOLDER_NAME}::${JSON_FILE_NAME}`;
+                let fileId = localStorage.getItem(FILE_ID_KEY);
                 if (fileId) {
                     try {
                         const response = await gapi.client.drive.files.get({ fileId: fileId, fields: 'id, name, parents, trashed' });
@@ -784,8 +786,8 @@
                             GOOGLE_DRIVE_JSON_FILE_ID = fileId;
                             await loadBooksFromDrive(fileId);
                             return;
-                        } else { localStorage.removeItem('google_drive_json_file_id'); }
-                    } catch (error) { localStorage.removeItem('google_drive_json_file_id'); }
+                        } else { localStorage.removeItem(FILE_ID_KEY); }
+                    } catch (error) { localStorage.removeItem(FILE_ID_KEY); }
                 }
                 const response = await gapi.client.drive.files.list({ q: `'${appFolderId}' in parents and name = '${JSON_FILE_NAME}' and trashed = false`, fields: 'files(id)' });
                 if (response.result.files && response.result.files.length > 0) {
@@ -800,7 +802,7 @@
                     const result = await uploadResponse.json();
                     fileId = result.id;
                 }
-                localStorage.setItem('google_drive_json_file_id', fileId);
+                localStorage.setItem(FILE_ID_KEY, fileId);
                 GOOGLE_DRIVE_JSON_FILE_ID = fileId;
                 await loadBooksFromDrive(fileId);
             } catch (error) { appContainer.innerHTML = `<div id="loading-message" style="color: red;">Error setting up Google Drive files. Please check console.</div>`; }

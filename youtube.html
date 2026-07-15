@@ -1014,7 +1014,8 @@
                 token: () => gapi.client.getToken()?.access_token,
 
                 async ensureFolder() {
-                    const cached = localStorage.getItem('app_folder_id');
+                    const FOLDER_ID_KEY = `drive_folder_id::${CONFIG.folderName}`;
+                    const cached = localStorage.getItem(FOLDER_ID_KEY);
                     if (cached) {
                         try {
                             const { result } = await gapi.client.drive.files.get({
@@ -1022,7 +1023,7 @@
                             });
                             if (result?.mimeType === 'application/vnd.google-apps.folder' && !result.trashed) return cached;
                         } catch { /* stale id — fall through to lookup */ }
-                        localStorage.removeItem('app_folder_id');
+                        localStorage.removeItem(FOLDER_ID_KEY);
                     }
                     const { result } = await gapi.client.drive.files.list({
                         q: `name = '${CONFIG.folderName}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
@@ -1036,13 +1037,14 @@
                         });
                         folderId = created.result.id;
                     }
-                    localStorage.setItem('app_folder_id', folderId);
+                    localStorage.setItem(FOLDER_ID_KEY, folderId);
                     return folderId;
                 },
 
                 async ensureFile() {
                     const folderId = await this.ensureFolder();
-                    const cached = localStorage.getItem('google_drive_json_file_id');
+                    const FILE_ID_KEY = `drive_file_id::${CONFIG.folderName}::${CONFIG.fileName}`;
+                    const cached = localStorage.getItem(FILE_ID_KEY);
                     if (cached) {
                         try {
                             const { result } = await gapi.client.drive.files.get({
@@ -1050,7 +1052,7 @@
                             });
                             if (result?.parents?.includes(folderId) && !result.trashed) return cached;
                         } catch { /* stale id — fall through to lookup */ }
-                        localStorage.removeItem('google_drive_json_file_id');
+                        localStorage.removeItem(FILE_ID_KEY);
                     }
                     const { result } = await gapi.client.drive.files.list({
                         q: `'${folderId}' in parents and name = '${CONFIG.fileName}' and trashed = false`,
@@ -1070,7 +1072,7 @@
                         if (!response.ok) throw new Error(`Create file failed: HTTP ${response.status}`);
                         id = (await response.json()).id;
                     }
-                    localStorage.setItem('google_drive_json_file_id', id);
+                    localStorage.setItem(FILE_ID_KEY, id);
                     return id;
                 },
 
