@@ -133,6 +133,7 @@
       text-align: left;
     }
     summary { cursor: pointer; font-size: 13px; color: #6b7280; }
+    #pwStatus { color: #34d399; font-weight: 700; }
     details .step { font-size: 13px; color: #9ca3af; margin: 10px 0 4px; }
     textarea {
       width: 100%;
@@ -172,7 +173,7 @@
   <h1>📱 Phone Speaker</h1>
 
   <details id="pwSettings">
-    <summary>🔒 Password (optional)</summary>
+    <summary>🔒 Password (optional) <span id="pwStatus"></span></summary>
     <div class="step">
       Set the same password here and in the Chromebook extension so only
       devices that know it can pair with each other. Leave blank to pair
@@ -209,7 +210,7 @@
     <summary>Diagnostics</summary>
     <button id="testBtn">🎵 Test sound</button>
     <pre id="log"></pre>
-    <div id="ver">receiver v11</div>
+    <div id="ver">receiver v12</div>
   </details>
 
   <details id="manual">
@@ -281,11 +282,17 @@
     }
 
     const pwInput = document.getElementById('pwInput');
+    const pwStatus = document.getElementById('pwStatus');
+    function renderPwStatus() {
+      pwStatus.textContent = getPassword() ? '(set)' : '';
+    }
     pwInput.value = getPassword();
+    renderPwStatus();
     pwInput.addEventListener('change', () => {
       try { localStorage.setItem(PW_KEY, pwInput.value.trim()); } catch (_) {}
       topic = null; // force re-derivation with the new password on next search
       dlog('password ' + (pwInput.value.trim() ? 'set' : 'cleared'));
+      renderPwStatus();
     });
 
     function setStatus(text, cls) {
@@ -305,7 +312,7 @@
       logEl.textContent = logLines.join('\n');
       logEl.scrollTop = logEl.scrollHeight;
     }
-    dlog('receiver v11 loaded');
+    dlog('receiver v12 loaded');
 
     // Volume control (independent of the phone's hardware volume).
     // Slider moves are echoed to the extension so its slider stays in sync.
@@ -525,7 +532,8 @@
         return setStatus('Auto-search needs internet — use manual pairing below', 'err');
       }
 
-      setStatus(auto && lastDevice ? `Reconnecting to ${lastDevice.name}…` : 'Searching for devices…');
+      const pwNote = getPassword() ? ' (🔒 password set)' : '';
+      setStatus((auto && lastDevice ? `Reconnecting to ${lastDevice.name}…` : 'Searching for devices…') + pwNote);
       if (!(await ensureWs())) {
         dlog('relay websocket FAILED');
         stopSearchUi();
@@ -543,7 +551,16 @@
         stopSearchUi();
         if (devices.size === 0 && !pc) {
           if (autoTarget) return scheduleRetry();
-          setStatus('No devices found — is the extension started? Try again.', 'err');
+          // A password mismatch is INDISTINGUISHABLE from "extension not
+          // running" here — mismatched passwords derive different topics,
+          // so the two devices never see each other's messages at all.
+          // Surface the likely cause instead of leaving this a mystery.
+          setStatus(
+            getPassword()
+              ? 'No devices found — double-check the password matches EXACTLY on both devices'
+              : 'No devices found — is the extension started? Try again.',
+            'err'
+          );
         }
       }, 12000));
     }
