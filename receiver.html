@@ -30,11 +30,12 @@
       border-radius: 999px;
       cursor: pointer;
     }
-    #searchBtn {
+    #searchBtn, #soundBtn {
       background: #10b981;
       color: #052e22;
       box-shadow: 0 8px 30px rgba(16, 185, 129, 0.35);
     }
+    #soundBtn { background: #f59e0b; color: #451a03; }
     button:active { transform: scale(0.97); }
     button:disabled { opacity: 0.5; }
     .hidden { display: none !important; }
@@ -112,6 +113,7 @@
 
   <div class="wrap">
     <button id="searchBtn">🔍 Search for devices</button>
+    <button id="soundBtn" class="hidden">🔊 Tap to enable sound</button>
     <div class="spinner" id="spinner"></div>
     <div id="devices"></div>
   </div>
@@ -134,6 +136,7 @@
 
   <script>
     const searchBtn = document.getElementById('searchBtn');
+    const soundBtn = document.getElementById('soundBtn');
     const spinner = document.getElementById('spinner');
     const devicesEl = document.getElementById('devices');
     const statusEl = document.getElementById('status');
@@ -386,9 +389,7 @@
         try { event.receiver.playoutDelayHint = 0; } catch (_) {}
         try { event.receiver.jitterBufferTarget = 0; } catch (_) {}
         player.srcObject = event.streams[0];
-        player.play().catch(() =>
-          setStatus('Tap anywhere to allow audio playback', 'err')
-        );
+        ensurePlaying();
         startVisualizer(event.streams[0]);
         startStats();
       };
@@ -405,6 +406,7 @@
             manual.classList.add('hidden');
             // Signaling is done — the audio is peer-to-peer from here on.
             if (ws) { try { ws.close(); } catch (_) {} ws = null; }
+            ensurePlaying(); // autoplay may have been blocked before this point
             break;
           case 'disconnected':
             // Often transient (Wi-Fi hiccup) — WebRTC usually recovers on
@@ -482,20 +484,46 @@
       setTimeout(() => (copyBtn.textContent = '📋 Copy reply code'), 1500);
     });
 
-    // A recovered tap anywhere retries playback if autoplay was blocked.
-    document.body.addEventListener('click', () => player.play().catch(() => {}));
+    // Playback can be blocked by Android's autoplay policy even after our
+    // tap (e.g. if pairing took long). Surface a visible recovery button
+    // instead of relying on a status line that later updates overwrite.
+    function ensurePlaying() {
+      player.muted = false;
+      player.volume = 1;
+      player.play().then(() => {
+        soundBtn.classList.add('hidden');
+      }).catch(() => {
+        soundBtn.classList.remove('hidden');
+        setStatus('Tap “Enable sound” to start playback', 'err');
+      });
+    }
+    soundBtn.addEventListener('click', ensurePlaying);
+
+    // A recovered tap anywhere also retries playback.
+    document.body.addEventListener('click', () => {
+      if (player.srcObject && player.paused) ensurePlaying();
+    });
 
     // --- stats + visualizer -----------------------------------------------------
+    let lastBytes = 0, lastTs = 0;
     function startStats() {
       clearInterval(statsTimer);
+      lastBytes = 0; lastTs = 0;
       statsTimer = setInterval(async () => {
         if (!pc) return;
         const stats = await pc.getStats();
         stats.forEach((s) => {
           if (s.type === 'inbound-rtp' && s.kind === 'audio') {
+            let kbps = 0;
+            if (lastTs) {
+              kbps = Math.max(0, Math.round(((s.bytesReceived ?? 0) - lastBytes) * 8 / (s.timestamp - lastTs)));
+            }
+            lastBytes = s.bytesReceived ?? 0;
+            lastTs = s.timestamp;
+            const level = s.audioLevel != null ? ` · level ${Math.round(s.audioLevel * 100)}%` : '';
             metaEl.textContent =
-              `codec: opus · packets: ${s.packetsReceived ?? 0} · lost: ${s.packetsLost ?? 0} · ` +
-              `jitter: ${Math.round((s.jitter || 0) * 1000)} ms`;
+              `opus · ${kbps} kb/s · packets ${s.packetsReceived ?? 0} · lost ${s.packetsLost ?? 0} · ` +
+              `jitter ${Math.round((s.jitter || 0) * 1000)} ms${level}`;
           }
         });
       }, 2000);
