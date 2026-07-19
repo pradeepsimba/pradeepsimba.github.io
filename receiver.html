@@ -30,12 +30,21 @@
       border-radius: 999px;
       cursor: pointer;
     }
-    #searchBtn, #soundBtn {
+    #searchBtn, #soundBtn, #reconnectBtn {
       background: #10b981;
       color: #052e22;
       box-shadow: 0 8px 30px rgba(16, 185, 129, 0.35);
     }
     #soundBtn { background: #f59e0b; color: #451a03; }
+    #newDeviceBtn {
+      background: #1f2937;
+      color: #9ca3af;
+      border: 1px solid #374151;
+      font-size: 14px;
+      padding: 10px 24px;
+    }
+    #reconnectQuestion { font-size: 15px; color: #e5e7eb; }
+    #reconnectQuestion b { color: #34d399; }
     button:active { transform: scale(0.97); }
     button:disabled { opacity: 0.5; }
     .hidden { display: none !important; }
@@ -146,12 +155,39 @@
       color: #e5e7eb;
     }
     #manualConnectBtn { background: #10b981; color: #052e22; }
+    #pwInput {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 10px;
+      border: 1px solid #374151;
+      background: #1f2937;
+      color: #e5e7eb;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
   <h1>📱 Phone Speaker</h1>
 
-  <div class="wrap">
+  <details id="pwSettings">
+    <summary>🔒 Password (optional)</summary>
+    <div class="step">
+      Set the same password here and in the Chromebook extension so only
+      devices that know it can pair with each other. Leave blank to pair
+      with any device on your network (the default).
+    </div>
+    <input type="password" id="pwInput" placeholder="No password (default)" autocomplete="off" />
+  </details>
+
+  <div class="wrap hidden" id="reconnectPrompt">
+    <div id="reconnectQuestion"></div>
+    <button id="reconnectBtn">🔁 Reconnect to this device</button>
+    <button id="newDeviceBtn">🔍 Search for a new device</button>
+  </div>
+
+  <div class="wrap" id="searchWrap">
     <button id="searchBtn">🔍 Search for devices</button>
     <button id="soundBtn" class="hidden">🔊 Tap to enable sound</button>
     <div class="spinner" id="spinner"></div>
@@ -173,7 +209,7 @@
     <summary>Diagnostics</summary>
     <button id="testBtn">🎵 Test sound</button>
     <pre id="log"></pre>
-    <div id="ver">receiver v9</div>
+    <div id="ver">receiver v11</div>
   </details>
 
   <details id="manual">
@@ -189,6 +225,11 @@
   <audio id="player" autoplay playsinline></audio>
 
   <script>
+    const searchWrap = document.getElementById('searchWrap');
+    const reconnectPrompt = document.getElementById('reconnectPrompt');
+    const reconnectQuestion = document.getElementById('reconnectQuestion');
+    const reconnectBtn = document.getElementById('reconnectBtn');
+    const newDeviceBtn = document.getElementById('newDeviceBtn');
     const searchBtn = document.getElementById('searchBtn');
     const soundBtn = document.getElementById('soundBtn');
     const spinner = document.getElementById('spinner');
@@ -228,6 +269,25 @@
     let retryDelay = 2000;    // doubles up to 30 s
     let retryTimer = null;
 
+    // Optional shared password — read fresh whenever needed, so an edit
+    // takes effect on the next search/connect without a page reload.
+    const PW_KEY = 'pas-password';
+    function getPassword() {
+      try { return (localStorage.getItem(PW_KEY) || '').trim(); } catch (_) { return ''; }
+    }
+    async function myPwHash() {
+      const pw = getPassword();
+      return pw ? await sha16('phone-as-speaker-auth:' + pw) : '';
+    }
+
+    const pwInput = document.getElementById('pwInput');
+    pwInput.value = getPassword();
+    pwInput.addEventListener('change', () => {
+      try { localStorage.setItem(PW_KEY, pwInput.value.trim()); } catch (_) {}
+      topic = null; // force re-derivation with the new password on next search
+      dlog('password ' + (pwInput.value.trim() ? 'set' : 'cleared'));
+    });
+
     function setStatus(text, cls) {
       statusEl.textContent = text;
       statusEl.className = cls || '';
@@ -245,7 +305,7 @@
       logEl.textContent = logLines.join('\n');
       logEl.scrollTop = logEl.scrollHeight;
     }
-    dlog('receiver v9 loaded');
+    dlog('receiver v11 loaded');
 
     // Volume control (independent of the phone's hardware volume).
     // Slider moves are echoed to the extension so its slider stays in sync.
@@ -341,6 +401,12 @@
       });
     }
 
+    // With no password, this reduces to the exact same topic as before the
+    // password feature existed. A non-empty password shifts the topic
+    // entirely: this phone and a Chromebook with a different (or no)
+    // password derive different topics and simply never see each other's
+    // probes — the real protection, enforced by the relay itself rather
+    // than by filtering messages after the fact.
     async function deriveTopic() {
       let ip = await publicIpViaStun(3000);
       if (!ip) {
@@ -350,7 +416,10 @@
           if (!/^\d+\.\d+\.\d+\.\d+$/.test(ip)) ip = null;
         } catch (_) { ip = null; }
       }
-      return ip ? 'pas-' + (await sha16('phone-as-speaker:' + ip)) : null;
+      if (!ip) return null;
+      const pw = getPassword();
+      const salt = pw ? `:pw:${pw}` : '';
+      return 'pas-' + (await sha16('phone-as-speaker:' + ip + salt));
     }
 
     // --- ntfy.sh signaling ---------------------------------------------------
@@ -525,6 +594,15 @@
     // --- WebRTC (shared by auto and manual pairing) ---------------------------
     // Takes the sender's offer, returns the encoded answer code.
     async function setupPeer(offer) {
+      // Auto-pairing already can't reach this point on a mismatch (different
+      // passwords derive different topics, so the devices never see each
+      // other's probes at all) — this check is what catches a mismatch on
+      // the MANUAL copy-paste path, which has no topic isolation to rely on.
+      const wantPw = await myPwHash();
+      if ((offer.pw || '') !== wantPw) {
+        throw new Error('Password mismatch — set the same password on both devices');
+      }
+
       pc = new RTCPeerConnection({
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
       });
@@ -638,6 +716,7 @@
         // answer apart from one meant for an offer it has since rebuilt
         // past (e.g. after a Wi-Fi drop triggered its own reconnect).
         if (offer.gen != null) localDesc.gen = offer.gen;
+        localDesc.pw = wantPw; // this phone's own password hash, for the extension to verify
         return await encodeCode(localDesc);
       } catch (e) {
         teardownPeer();
@@ -824,13 +903,42 @@
       }
     });
 
-    // Known device? Start reconnecting immediately — no tap needed for the
-    // connection itself; the muted-playback fallback covers autoplay, and
-    // a single tap enables sound if the browser requires one.
+    // On a fresh page load with a remembered device, ask rather than
+    // silently reconnecting — the user may have refreshed specifically to
+    // pair with a DIFFERENT Chromebook. Mid-session recovery (a dropped
+    // connection retrying via scheduleRetry) is unaffected and still
+    // reconnects automatically without asking, since that's recovering an
+    // already-chosen session, not starting a fresh one.
     if (lastDevice) {
+      dlog(`known device on file: ${lastDevice.name} — asking before reconnecting`);
+      searchWrap.classList.add('hidden');
+      reconnectPrompt.classList.remove('hidden');
+      reconnectQuestion.innerHTML = `Reconnect to <b>${escapeHtml(lastDevice.name)}</b>?`;
+      setStatus('Choose an option below');
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[c]));
+    }
+
+    reconnectBtn.addEventListener('click', () => {
+      dlog('user chose: reconnect to known device');
+      reconnectPrompt.classList.add('hidden');
+      searchWrap.classList.remove('hidden');
       setStatus(`Reconnecting to ${lastDevice.name}…`);
       startSearch(true);
-    }
+    });
+
+    newDeviceBtn.addEventListener('click', () => {
+      dlog('user chose: search for a new device');
+      reconnectPrompt.classList.add('hidden');
+      searchWrap.classList.remove('hidden');
+      autoTarget = null; // don't auto-target the old device while searching
+      retryDelay = 2000;
+      startSearch(false);
+    });
   </script>
 </body>
 </html>
