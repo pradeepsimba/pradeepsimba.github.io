@@ -173,7 +173,7 @@
     <summary>Diagnostics</summary>
     <button id="testBtn">🎵 Test sound</button>
     <pre id="log"></pre>
-    <div id="ver">receiver v6</div>
+    <div id="ver">receiver v7</div>
   </details>
 
   <details id="manual">
@@ -208,6 +208,7 @@
     const NTFY = 'https://ntfy.sh';
 
     let pc = null;
+    let control = null; // RTCDataChannel from the extension (volume sync)
     let ws = null;
     let wakeLock = null;
     let statsTimer = null;
@@ -243,12 +244,16 @@
       logEl.textContent = logLines.join('\n');
       logEl.scrollTop = logEl.scrollHeight;
     }
-    dlog('receiver v6 loaded');
+    dlog('receiver v7 loaded');
 
     // Volume control (independent of the phone's hardware volume).
+    // Slider moves are echoed to the extension so its slider stays in sync.
     vol.addEventListener('input', () => {
       player.volume = vol.value / 100;
       if (player.muted && vol.value > 0) ensurePlaying(); // slider tap is a gesture
+      if (control && control.readyState === 'open') {
+        try { control.send(JSON.stringify({ kind: 'volume', value: Number(vol.value) })); } catch (_) {}
+      }
     });
 
     function randId() {
@@ -508,6 +513,23 @@
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
       });
 
+      // Control channel from the extension: remote volume (popup slider,
+      // and on ChromeOS the system volume keys).
+      pc.ondatachannel = (e) => {
+        control = e.channel;
+        control.onmessage = (ev) => {
+          try {
+            const m = JSON.parse(ev.data);
+            if (m.kind === 'volume') {
+              const v = Math.max(0, Math.min(100, Math.round(m.value)));
+              vol.value = v;
+              player.volume = v / 100;
+              dlog('volume set remotely: ' + v + '%');
+            }
+          } catch (_) {}
+        };
+      };
+
       pc.ontrack = (event) => {
         dlog(`ontrack: kind=${event.track.kind} muted=${event.track.muted} state=${event.track.readyState}`);
         // muted=true here just means no RTP has arrived YET; the unmute
@@ -563,6 +585,7 @@
             teardownPeer(); // stops stats + viz and frees the connection
             requestedId = null;
             searchBtn.classList.remove('hidden');
+            manualConnectBtn.disabled = false; // allow manual re-pairing
             volWrap.classList.add('hidden');
             if (autoTarget) {
               scheduleRetry(); // the extension rebuilds too — re-pair on our own
@@ -602,6 +625,7 @@
     function teardownPeer() {
       clearInterval(statsTimer);
       stopVisualizer();
+      control = null; // channel dies with its connection
       if (pc) {
         pc.onconnectionstatechange = null;
         pc.close();
