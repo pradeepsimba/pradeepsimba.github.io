@@ -173,7 +173,7 @@
     <summary>Diagnostics</summary>
     <button id="testBtn">🎵 Test sound</button>
     <pre id="log"></pre>
-    <div id="ver">receiver v7</div>
+    <div id="ver">receiver v9</div>
   </details>
 
   <details id="manual">
@@ -209,6 +209,7 @@
 
     let pc = null;
     let control = null; // RTCDataChannel from the extension (volume sync)
+    let pendingVolume = null; // latest desired volume; flushed once control opens
     let ws = null;
     let wakeLock = null;
     let statsTimer = null;
@@ -244,16 +245,31 @@
       logEl.textContent = logLines.join('\n');
       logEl.scrollTop = logEl.scrollHeight;
     }
-    dlog('receiver v7 loaded');
+    dlog('receiver v9 loaded');
 
     // Volume control (independent of the phone's hardware volume).
     // Slider moves are echoed to the extension so its slider stays in sync.
+    // Buffered: the data channel can still be mid-handshake for a moment
+    // right after "connected" fires, so a move made in that window is
+    // queued rather than silently dropped.
+    function sendVolume(value) {
+      pendingVolume = value;
+      flushVolume();
+    }
+    function flushVolume() {
+      if (pendingVolume == null) return;
+      if (!control || control.readyState !== 'open') return;
+      try {
+        control.send(JSON.stringify({ kind: 'volume', value: pendingVolume }));
+        pendingVolume = null;
+      } catch (_) {
+        // leave pendingVolume set — retried on the next flush
+      }
+    }
     vol.addEventListener('input', () => {
       player.volume = vol.value / 100;
       if (player.muted && vol.value > 0) ensurePlaying(); // slider tap is a gesture
-      if (control && control.readyState === 'open') {
-        try { control.send(JSON.stringify({ kind: 'volume', value: Number(vol.value) })); } catch (_) {}
-      }
+      sendVolume(Number(vol.value));
     });
 
     function randId() {
@@ -513,10 +529,12 @@
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
       });
 
-      // Control channel from the extension: remote volume (popup slider,
-      // and on ChromeOS the system volume keys).
+      // Control channel from the extension: remote volume (synced with
+      // the extension popup's slider).
       pc.ondatachannel = (e) => {
         control = e.channel;
+        control.onopen = () => flushVolume(); // deliver anything queued
+        control.onclose = () => { if (control === e.channel) control = null; };
         control.onmessage = (ev) => {
           try {
             const m = JSON.parse(ev.data);
@@ -615,7 +633,12 @@
         });
 
         if (pc !== conn) throw new Error('cancelled');
-        return await encodeCode(conn.localDescription.toJSON());
+        const localDesc = conn.localDescription.toJSON();
+        // Echo the offer's generation back so the extension can tell this
+        // answer apart from one meant for an offer it has since rebuilt
+        // past (e.g. after a Wi-Fi drop triggered its own reconnect).
+        if (offer.gen != null) localDesc.gen = offer.gen;
+        return await encodeCode(localDesc);
       } catch (e) {
         teardownPeer();
         throw e;
