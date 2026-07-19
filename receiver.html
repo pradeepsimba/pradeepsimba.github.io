@@ -67,8 +67,39 @@
       background: #1f2937;
       color: #9ca3af;
       border: 1px solid #374151;
+      margin: 8px 0;
     }
-    #ver { font-size: 10px; color: #374151; }
+    #ver { font-size: 10px; color: #374151; margin-top: 6px; }
+    #volWrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 320px;
+      font-size: 18px;
+    }
+    #vol {
+      flex: 1;
+      accent-color: #10b981;
+      height: 28px;
+    }
+    #log {
+      width: 100%;
+      max-width: 480px;
+      max-height: 140px;
+      overflow-y: auto;
+      text-align: left;
+      font-size: 10px;
+      line-height: 1.5;
+      color: #6b7280;
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      padding: 8px;
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
     .pulse { animation: pulse 1.6s ease-in-out infinite; }
     @keyframes pulse {
       0%, 100% { opacity: 1; }
@@ -129,9 +160,21 @@
 
   <canvas id="viz" width="220" height="60"></canvas>
   <div id="status">Tap search while the Chromebook extension is running</div>
+
+  <div id="volWrap" class="hidden">
+    <span>🔉</span>
+    <input type="range" id="vol" min="0" max="100" value="100" />
+    <span>🔊</span>
+  </div>
+
   <div id="meta"></div>
-  <button id="testBtn">🎵 Test sound</button>
-  <div id="ver">receiver v3</div>
+
+  <details id="diag">
+    <summary>Diagnostics</summary>
+    <button id="testBtn">🎵 Test sound</button>
+    <pre id="log"></pre>
+    <div id="ver">receiver v6</div>
+  </details>
 
   <details id="manual">
     <summary>Manual pairing (if search can't find the Chromebook)</summary>
@@ -159,6 +202,8 @@
     const answerOut = document.getElementById('answerOut');
     const manualConnectBtn = document.getElementById('manualConnectBtn');
     const copyBtn = document.getElementById('copyBtn');
+    const volWrap = document.getElementById('volWrap');
+    const vol = document.getElementById('vol');
 
     const NTFY = 'https://ntfy.sh';
 
@@ -173,10 +218,38 @@
     let searchTimers = [];
     const devices = new Map(); // id -> name
 
+    // Remembered device: reconnects happen automatically, with backoff.
+    const LAST_KEY = 'pas-last-device';
+    let lastDevice = null;
+    try { lastDevice = JSON.parse(localStorage.getItem(LAST_KEY) || 'null'); } catch (_) {}
+    let autoTarget = null;    // device id to auto-request when announced
+    let retryDelay = 2000;    // doubles up to 30 s
+    let retryTimer = null;
+
     function setStatus(text, cls) {
       statusEl.textContent = text;
       statusEl.className = cls || '';
     }
+
+    // On-screen debug log — pinpoints where the pipeline stops.
+    // Capped ring buffer: naive `textContent +=` is O(n²) over a session.
+    const logEl = document.getElementById('log');
+    const LOG_MAX = 60;
+    const logLines = [];
+    function dlog(msg) {
+      const t = new Date().toTimeString().slice(0, 8);
+      logLines.push(`[${t}] ${msg}`);
+      if (logLines.length > LOG_MAX) logLines.shift();
+      logEl.textContent = logLines.join('\n');
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    dlog('receiver v6 loaded');
+
+    // Volume control (independent of the phone's hardware volume).
+    vol.addEventListener('input', () => {
+      player.volume = vol.value / 100;
+      if (player.muted && vol.value > 0) ensurePlaying(); // slider tap is a gesture
+    });
 
     function randId() {
       const b = crypto.getRandomValues(new Uint8Array(4));
@@ -295,25 +368,31 @@
           if (pc) return;
           if (!devices.has(m.from)) {
             devices.set(m.from, m.name || 'Chromebook');
+            dlog('found device: ' + (m.name || 'Chromebook'));
             renderDevices();
             setStatus('Tap a device to connect');
           }
+          // Remembered device showed up — reconnect without a tap.
+          if (autoTarget === m.from) requestDevice(m.from, devices.get(m.from));
           break;
 
         case 'offer': // the Chromebook we requested sent its offer
           if (pc || connecting || m.from !== requestedId) return;
           connecting = true; // guard against duplicate offer delivery
           try {
+            dlog('offer received, building answer…');
             const offer = await decodeCode(m.payload);
             if (offer.type !== 'offer') throw new Error('bad offer');
             const answerCode = await setupPeer(offer);
             await publish({ kind: 'answer', to: m.from, payload: answerCode });
+            dlog('answer sent');
             setStatus('Connecting…');
           } catch (e) {
             teardownPeer();
             requestedId = null; // otherwise the 10 s timeout overwrites this error
             setStatus('Pairing failed: ' + e.message, 'err');
             renderDevices();
+            if (autoTarget) scheduleRetry();
           } finally {
             connecting = false;
           }
@@ -321,9 +400,19 @@
       }
     }
 
-    // --- device search UI ----------------------------------------------------
-    searchBtn.addEventListener('click', async () => {
-      // This tap is our autoplay gesture — unlock audio output now.
+    // --- device search -------------------------------------------------------
+    searchBtn.addEventListener('click', () => {
+      autoTarget = null; // manual search: the user picks the device
+      retryDelay = 2000;
+      startSearch(false);
+    });
+
+    async function startSearch(auto) {
+      if (pc) return;
+      clearTimeout(retryTimer);
+      if (auto && lastDevice) autoTarget = lastDevice.id;
+
+      // A tap is our autoplay gesture; auto-runs rely on the muted fallback.
       player.play().catch(() => {});
       // Keep the screen (and audio pipeline) alive while acting as a speaker.
       try { wakeLock = await navigator.wakeLock?.request('screen'); } catch (_) {}
@@ -333,19 +422,24 @@
       devices.clear();
       renderDevices();
 
+      dlog(auto ? 'auto-reconnect search' : 'search started');
       if (!topic) {
         setStatus('Locating your network…');
         topic = await deriveTopic();
+        dlog(topic ? 'network topic ok' : 'network topic FAILED (no internet?)');
       }
       if (!topic) {
         stopSearchUi();
+        if (auto) return scheduleRetry();
         manual.open = true;
         return setStatus('Auto-search needs internet — use manual pairing below', 'err');
       }
 
-      setStatus('Searching for devices…');
+      setStatus(auto && lastDevice ? `Reconnecting to ${lastDevice.name}…` : 'Searching for devices…');
       if (!(await ensureWs())) {
+        dlog('relay websocket FAILED');
         stopSearchUi();
+        if (auto) return scheduleRetry();
         manual.open = true;
         return setStatus('Cannot reach pairing relay — use manual pairing below', 'err');
       }
@@ -358,14 +452,41 @@
       searchTimers.push(setTimeout(() => {
         stopSearchUi();
         if (devices.size === 0 && !pc) {
+          if (autoTarget) return scheduleRetry();
           setStatus('No devices found — is the extension started? Try again.', 'err');
         }
       }, 12000));
-    });
+    }
+
+    function scheduleRetry() {
+      if (pc) return;
+      clearTimeout(retryTimer);
+      const secs = Math.round(retryDelay / 1000);
+      setStatus(`Reconnecting${lastDevice ? ' to ' + lastDevice.name : ''} in ${secs} s…`, 'err');
+      dlog(`retry in ${secs} s`);
+      retryTimer = setTimeout(() => startSearch(true), retryDelay);
+      retryDelay = Math.min(retryDelay * 2, 30000);
+    }
 
     function stopSearchUi() {
       searchBtn.disabled = false;
       spinner.style.display = 'none';
+    }
+
+    function requestDevice(id, name) {
+      if (pc || connecting) return;
+      requestedId = id;
+      dlog('requested ' + name);
+      setStatus(`Connecting to ${name}…`);
+      publish({ kind: 'request', to: id });
+      // If no offer arrives, retry automatically (or let the user re-tap).
+      setTimeout(() => {
+        if (!pc && !connecting && requestedId === id) {
+          requestedId = null;
+          if (autoTarget) return scheduleRetry();
+          setStatus('No response — tap the device to retry', 'err');
+        }
+      }, 10000);
     }
 
     function renderDevices() {
@@ -375,19 +496,7 @@
         btn.className = 'device';
         btn.innerHTML = `<span class="icon">💻</span><span></span>`;
         btn.querySelector('span:last-child').textContent = name;
-        btn.addEventListener('click', () => {
-          if (pc) return;
-          requestedId = id;
-          setStatus(`Connecting to ${name}…`);
-          publish({ kind: 'request', to: id });
-          // If no offer arrives, let the user try again.
-          setTimeout(() => {
-            if (!pc && requestedId === id) {
-              requestedId = null;
-              setStatus('No response — tap the device to retry', 'err');
-            }
-          }, 10000);
-        });
+        btn.addEventListener('click', () => requestDevice(id, name));
         devicesEl.appendChild(btn);
       }
     }
@@ -400,6 +509,12 @@
       });
 
       pc.ontrack = (event) => {
+        dlog(`ontrack: kind=${event.track.kind} muted=${event.track.muted} state=${event.track.readyState}`);
+        // muted=true here just means no RTP has arrived YET; the unmute
+        // event below is the proof that audio data is actually flowing.
+        event.track.onunmute = () => dlog('track unmuted — audio data is arriving ✓');
+        event.track.onmute = () => dlog('track muted — audio data stopped');
+        event.track.onended = () => dlog('track ended');
         // Minimize the receive-side jitter buffer for low latency.
         try { event.receiver.playoutDelayHint = 0; } catch (_) {}
         try { event.receiver.jitterBufferTarget = 0; } catch (_) {}
@@ -414,6 +529,7 @@
 
       pc.onconnectionstatechange = () => {
         if (!pc) return;
+        dlog('connection: ' + pc.connectionState);
         switch (pc.connectionState) {
           case 'connected':
             setStatus('🔊 Playing Chromebook audio', 'ok');
@@ -422,6 +538,16 @@
             spinner.style.display = 'none';
             devicesEl.innerHTML = '';
             manual.classList.add('hidden');
+            volWrap.classList.remove('hidden');
+            searchTimers.forEach(clearTimeout); // no more probing needed
+            clearTimeout(retryTimer);
+            retryDelay = 2000; // healthy again — reset the backoff
+            // Remember this device so future sessions reconnect on their own.
+            if (requestedId) {
+              lastDevice = { id: requestedId, name: devices.get(requestedId) || 'Chromebook' };
+              try { localStorage.setItem(LAST_KEY, JSON.stringify(lastDevice)); } catch (_) {}
+              autoTarget = lastDevice.id;
+            }
             // Signaling is done — the audio is peer-to-peer from here on.
             if (ws) { try { ws.close(); } catch (_) {} ws = null; }
             ensurePlaying(); // autoplay may have been blocked before this point
@@ -434,7 +560,15 @@
             break;
           case 'failed':
             statusEl.classList.remove('pulse');
-            setStatus('Stream lost — reload the page to reconnect', 'err');
+            teardownPeer(); // stops stats + viz and frees the connection
+            requestedId = null;
+            searchBtn.classList.remove('hidden');
+            volWrap.classList.add('hidden');
+            if (autoTarget) {
+              scheduleRetry(); // the extension rebuilds too — re-pair on our own
+            } else {
+              setStatus('Stream lost — tap Search to reconnect', 'err');
+            }
             break;
         }
       };
@@ -466,6 +600,8 @@
     }
 
     function teardownPeer() {
+      clearInterval(statsTimer);
+      stopVisualizer();
       if (pc) {
         pc.onconnectionstatechange = null;
         pc.close();
@@ -509,17 +645,29 @@
     // Playback can be blocked by Android's autoplay policy even after our
     // tap (e.g. if pairing took long). Surface a visible recovery button
     // instead of relying on a status line that later updates overwrite.
-    function ensurePlaying() {
+    async function ensurePlaying() {
+      player.volume = vol.value / 100; // respect the slider
       player.muted = false;
-      player.volume = 1;
-      player.play().then(() => {
+      try {
+        await player.play();
         soundBtn.classList.add('hidden');
-      }).catch(() => {
+        dlog('playback started (unmuted)');
+      } catch (e) {
+        dlog('unmuted play blocked: ' + e.name);
+        // Muted playback can never be blocked by autoplay policy — start
+        // muted so the stream flows, and let a tap unmute it.
+        try {
+          player.muted = true;
+          await player.play();
+          dlog('playing muted — waiting for tap to unmute');
+        } catch (e2) {
+          dlog('muted play also failed: ' + e2.name);
+        }
         soundBtn.classList.remove('hidden');
         setStatus('Tap “Enable sound” to start playback', 'err');
-      });
+      }
     }
-    soundBtn.addEventListener('click', ensurePlaying);
+    soundBtn.addEventListener('click', () => { dlog('enable-sound tapped'); ensurePlaying(); });
 
     // Isolation test: a locally generated beep. If this is audible, the
     // phone's audio output path (volume, routing, speaker) is fine and any
@@ -544,58 +692,82 @@
       }, 3000);
     });
 
-    // A recovered tap anywhere also retries playback.
+    // A recovered tap anywhere also retries playback — including the
+    // muted-fallback state, where the player is playing but silent.
     document.body.addEventListener('click', () => {
-      if (player.srcObject && player.paused) ensurePlaying();
+      if (player.srcObject && (player.paused || player.muted)) ensurePlaying();
     });
 
     // --- stats + visualizer -----------------------------------------------------
-    let lastBytes = 0, lastTs = 0;
+    let lastBytes = 0, lastTs = 0, loggedData = false;
     function startStats() {
       clearInterval(statsTimer);
-      lastBytes = 0; lastTs = 0;
+      lastBytes = 0; lastTs = 0; loggedData = false;
       statsTimer = setInterval(async () => {
         if (!pc) return;
         const stats = await pc.getStats();
-        stats.forEach((s) => {
-          if (s.type === 'inbound-rtp' && s.kind === 'audio') {
-            let kbps = 0;
-            if (lastTs) {
-              kbps = Math.max(0, Math.round(((s.bytesReceived ?? 0) - lastBytes) * 8 / (s.timestamp - lastTs)));
-            }
-            lastBytes = s.bytesReceived ?? 0;
-            lastTs = s.timestamp;
-            const level = s.audioLevel != null ? ` · level ${Math.round(s.audioLevel * 100)}%` : '';
-            metaEl.textContent =
-              `opus · ${kbps} kb/s · packets ${s.packetsReceived ?? 0} · lost ${s.packetsLost ?? 0} · ` +
-              `jitter ${Math.round((s.jitter || 0) * 1000)} ms${level}`;
+        for (const s of stats.values()) {
+          if (s.type !== 'inbound-rtp' || s.kind !== 'audio') continue;
+          let kbps = 0;
+          if (lastTs) {
+            kbps = Math.max(0, Math.round(((s.bytesReceived ?? 0) - lastBytes) * 8 / (s.timestamp - lastTs)));
           }
-        });
+          lastBytes = s.bytesReceived ?? 0;
+          lastTs = s.timestamp;
+          if (!loggedData && (s.packetsReceived ?? 0) > 0) {
+            loggedData = true;
+            dlog(`receiving data ✓ (${s.packetsReceived} packets)`);
+          }
+          const level = s.audioLevel != null ? ` · level ${Math.round(s.audioLevel * 100)}%` : '';
+          metaEl.textContent =
+            `opus · ${kbps} kb/s · packets ${s.packetsReceived ?? 0} · lost ${s.packetsLost ?? 0} · ` +
+            `jitter ${Math.round((s.jitter || 0) * 1000)} ms${level}` +
+            (player.muted ? ' · MUTED' : '') + (player.paused ? ' · PAUSED' : '');
+          break; // single audio stream — no need to scan the rest
+        }
       }, 2000);
     }
 
+    // Single AudioContext/analyser reused across reconnects; the draw loop
+    // is cancellable and all constants are hoisted out of the frame path.
+    let vizCtx = null, vizAnalyser = null, vizSrc = null, vizRaf = 0;
     function startVisualizer(stream) {
       viz.style.display = 'block';
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (!vizCtx) {
+        vizCtx = new (window.AudioContext || window.webkitAudioContext)();
+        vizAnalyser = vizCtx.createAnalyser();
+        vizAnalyser.fftSize = 64;
+        vizAnalyser.smoothingTimeConstant = 0.7;
+      }
       // ontrack is not a user gesture, so the context may start suspended;
       // the earlier tap gives us sticky activation, so resume() succeeds.
-      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 64;
-      ctx.createMediaStreamSource(stream).connect(analyser);
-      const data = new Uint8Array(analyser.frequencyBinCount);
+      if (vizCtx.state === 'suspended') vizCtx.resume().catch(() => {});
+      if (vizSrc) { try { vizSrc.disconnect(); } catch (_) {} }
+      vizSrc = vizCtx.createMediaStreamSource(stream);
+      vizSrc.connect(vizAnalyser);
+
+      cancelAnimationFrame(vizRaf);
+      const data = new Uint8Array(vizAnalyser.frequencyBinCount);
       const g = viz.getContext('2d');
+      const n = data.length;
+      const barW = viz.width / n;
+      const H = viz.height;
+      g.fillStyle = '#10b981';
       (function draw() {
-        requestAnimationFrame(draw);
-        analyser.getByteFrequencyData(data);
-        g.clearRect(0, 0, viz.width, viz.height);
-        const barW = viz.width / data.length;
-        data.forEach((v, i) => {
-          const h = (v / 255) * viz.height;
-          g.fillStyle = '#10b981';
-          g.fillRect(i * barW + 1, viz.height - h, barW - 2, h);
-        });
+        vizRaf = requestAnimationFrame(draw);
+        vizAnalyser.getByteFrequencyData(data);
+        g.clearRect(0, 0, viz.width, H);
+        for (let i = 0; i < n; i++) {
+          const h = (data[i] / 255) * H;
+          g.fillRect(i * barW + 1, H - h, barW - 2, h);
+        }
       })();
+    }
+
+    function stopVisualizer() {
+      cancelAnimationFrame(vizRaf);
+      vizRaf = 0;
+      if (vizSrc) { try { vizSrc.disconnect(); } catch (_) {} vizSrc = null; }
     }
 
     // Re-acquire the wake lock when the tab becomes visible again.
@@ -604,6 +776,14 @@
         try { wakeLock = await navigator.wakeLock?.request('screen'); } catch (_) {}
       }
     });
+
+    // Known device? Start reconnecting immediately — no tap needed for the
+    // connection itself; the muted-playback fallback covers autoplay, and
+    // a single tap enables sound if the browser requires one.
+    if (lastDevice) {
+      setStatus(`Reconnecting to ${lastDevice.name}…`);
+      startSearch(true);
+    }
   </script>
 </body>
 </html>
