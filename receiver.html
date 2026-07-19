@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>📱 Phone Speaker</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      font-family: Roboto, "Segoe UI", sans-serif;
+      background: #0b1120;
+      color: #e5e7eb;
+      text-align: center;
+      padding: 24px;
+    }
+    h1 { font-size: 22px; margin: 0; }
+    .wrap { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+    button {
+      font-size: 17px;
+      font-weight: 700;
+      padding: 14px 36px;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    #searchBtn {
+      background: #10b981;
+      color: #052e22;
+      box-shadow: 0 8px 30px rgba(16, 185, 129, 0.35);
+    }
+    button:active { transform: scale(0.97); }
+    button:disabled { opacity: 0.5; }
+    .hidden { display: none !important; }
+    #devices { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+    .device {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      background: #1f2937;
+      border: 1px solid #374151;
+      color: #e5e7eb;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: left;
+    }
+    .device .icon { font-size: 22px; }
+    #status { font-size: 15px; color: #9ca3af; min-height: 22px; }
+    .ok { color: #34d399 !important; }
+    .err { color: #f87171 !important; }
+    #viz { width: 220px; height: 60px; display: none; }
+    #meta { font-size: 12px; color: #4b5563; }
+    .pulse { animation: pulse 1.6s ease-in-out infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
+    .spinner {
+      width: 22px; height: 22px;
+      border: 3px solid #374151;
+      border-top-color: #10b981;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    details {
+      width: 100%;
+      max-width: 480px;
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 10px 14px;
+      text-align: left;
+    }
+    summary { cursor: pointer; font-size: 13px; color: #6b7280; }
+    details .step { font-size: 13px; color: #9ca3af; margin: 10px 0 4px; }
+    textarea {
+      width: 100%;
+      height: 80px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #374151;
+      background: #1f2937;
+      color: #e5e7eb;
+      font-size: 12px;
+      font-family: monospace;
+      resize: none;
+    }
+    details button {
+      font-size: 14px;
+      padding: 10px 20px;
+      margin-top: 8px;
+      border-radius: 8px;
+      background: #374151;
+      color: #e5e7eb;
+    }
+    #manualConnectBtn { background: #10b981; color: #052e22; }
+  </style>
+</head>
+<body>
+  <h1>📱 Phone Speaker</h1>
+
+  <div class="wrap">
+    <button id="searchBtn">🔍 Search for devices</button>
+    <div class="spinner" id="spinner"></div>
+    <div id="devices"></div>
+  </div>
+
+  <canvas id="viz" width="220" height="60"></canvas>
+  <div id="status">Tap search while the Chromebook extension is running</div>
+  <div id="meta"></div>
+
+  <details id="manual">
+    <summary>Manual pairing (if search can't find the Chromebook)</summary>
+    <div class="step">1. In the extension, open “Manual pairing” and copy the connection code, paste it here:</div>
+    <textarea id="offerIn" placeholder="Paste connection code here…"></textarea>
+    <button id="manualConnectBtn">🔊 Connect</button>
+    <div class="step">2. Send this reply code back and paste it into the extension:</div>
+    <textarea id="answerOut" readonly></textarea>
+    <button id="copyBtn">📋 Copy reply code</button>
+  </details>
+
+  <audio id="player" autoplay playsinline></audio>
+
+  <script>
+    const searchBtn = document.getElementById('searchBtn');
+    const spinner = document.getElementById('spinner');
+    const devicesEl = document.getElementById('devices');
+    const statusEl = document.getElementById('status');
+    const metaEl = document.getElementById('meta');
+    const player = document.getElementById('player');
+    const viz = document.getElementById('viz');
+    const manual = document.getElementById('manual');
+    const offerIn = document.getElementById('offerIn');
+    const answerOut = document.getElementById('answerOut');
+    const manualConnectBtn = document.getElementById('manualConnectBtn');
+    const copyBtn = document.getElementById('copyBtn');
+
+    const NTFY = 'https://ntfy.sh';
+
+    let pc = null;
+    let ws = null;
+    let wakeLock = null;
+    let statsTimer = null;
+    let topic = null;
+    let myId = randId();
+    let requestedId = null;   // device we asked to connect to
+    let searchTimers = [];
+    const devices = new Map(); // id -> name
+
+    function setStatus(text, cls) {
+      statusEl.textContent = text;
+      statusEl.className = cls || '';
+    }
+
+    function randId() {
+      const b = crypto.getRandomValues(new Uint8Array(4));
+      return [...b].map((x) => x.toString(16).padStart(2, '0')).join('');
+    }
+
+    // --- connection-code encoding (must match the extension) ---------------
+    async function encodeCode(obj) {
+      const bytes = new TextEncoder().encode(JSON.stringify(obj));
+      const deflated = await new Response(
+        new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))
+      ).arrayBuffer();
+      // Chunked conversion: spreading a large array into fromCharCode can
+      // overflow the argument limit.
+      const u8 = new Uint8Array(deflated);
+      let bin = '';
+      for (let i = 0; i < u8.length; i += 0x8000) {
+        bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+      }
+      return btoa(bin);
+    }
+
+    async function decodeCode(code) {
+      // Strip ALL whitespace — chat apps line-wrap long pasted strings.
+      const bytes = Uint8Array.from(atob(code.replace(/\s+/g, '')), (c) => c.charCodeAt(0));
+      const inflated = await new Response(
+        new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))
+      ).arrayBuffer();
+      return JSON.parse(new TextDecoder().decode(inflated));
+    }
+
+    // --- network rendezvous topic (must match the extension) ---------------
+    async function sha16(text) {
+      const digest = await crypto.subtle.digest(
+        'SHA-256',
+        new TextEncoder().encode(text)
+      );
+      return [...new Uint8Array(digest)]
+        .slice(0, 8)
+        .map((x) => x.toString(16).padStart(2, '0'))
+        .join('');
+    }
+
+    function publicIpViaStun(timeoutMs) {
+      return new Promise((resolve) => {
+        let done = false;
+        const finish = (ip) => {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          probe.close();
+          resolve(ip);
+        };
+        const probe = new RTCPeerConnection({
+          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+        });
+        const timer = setTimeout(() => finish(null), timeoutMs);
+        probe.onicecandidate = (e) => {
+          const c = e.candidate?.candidate || '';
+          // Prefer IPv4 so both devices derive the same topic.
+          const m = c.match(/ typ srflx/) && c.match(/candidate:\S+ \d+ \S+ \d+ (\d+\.\d+\.\d+\.\d+) /);
+          if (m) finish(m[1]);
+        };
+        probe.createDataChannel('probe');
+        probe.createOffer()
+          .then((o) => probe.setLocalDescription(o))
+          .catch(() => finish(null));
+      });
+    }
+
+    async function deriveTopic() {
+      let ip = await publicIpViaStun(3000);
+      if (!ip) {
+        try {
+          const r = await fetch('https://api.ipify.org', { cache: 'no-store' });
+          ip = (await r.text()).trim();
+          if (!/^\d+\.\d+\.\d+\.\d+$/.test(ip)) ip = null;
+        } catch (_) { ip = null; }
+      }
+      return ip ? 'pas-' + (await sha16('phone-as-speaker:' + ip)) : null;
+    }
+
+    // --- ntfy.sh signaling ---------------------------------------------------
+    async function publish(obj) {
+      try {
+        await fetch(`${NTFY}/${topic}`, {
+          method: 'POST',
+          body: JSON.stringify({ ...obj, from: myId }),
+        });
+      } catch (_) {}
+    }
+
+    function ensureWs() {
+      return new Promise((resolve) => {
+        if (ws && ws.readyState === WebSocket.OPEN) return resolve(true);
+        ws = new WebSocket(`wss://ntfy.sh/${topic}/ws`);
+        const timer = setTimeout(() => resolve(false), 6000);
+        ws.onopen = () => { clearTimeout(timer); resolve(true); };
+        ws.onerror = () => { clearTimeout(timer); resolve(false); };
+        ws.onmessage = (e) => {
+          let ev;
+          try { ev = JSON.parse(e.data); } catch (_) { return; }
+          if (ev.event !== 'message') return; // ignore keepalive/open events
+          let m;
+          try { m = JSON.parse(ev.message); } catch (_) { return; }
+          if (!m || m.from === myId) return;   // our own messages echo back
+          if (m.to && m.to !== myId) return;   // addressed to someone else
+          handleSignal(m);
+        };
+      });
+    }
+
+    async function handleSignal(m) {
+      switch (m.kind) {
+        case 'announce': // a Chromebook responded to our probe
+          if (pc) return;
+          if (!devices.has(m.from)) {
+            devices.set(m.from, m.name || 'Chromebook');
+            renderDevices();
+            setStatus('Tap a device to connect');
+          }
+          break;
+
+        case 'offer': // the Chromebook we requested sent its offer
+          if (pc || m.from !== requestedId) return;
+          try {
+            const offer = await decodeCode(m.payload);
+            if (offer.type !== 'offer') throw new Error('bad offer');
+            const answerCode = await setupPeer(offer);
+            await publish({ kind: 'answer', to: m.from, payload: answerCode });
+            setStatus('Connecting…');
+          } catch (e) {
+            teardownPeer();
+            requestedId = null; // otherwise the 10 s timeout overwrites this error
+            setStatus('Pairing failed: ' + e.message, 'err');
+            renderDevices();
+          }
+          break;
+      }
+    }
+
+    // --- device search UI ----------------------------------------------------
+    searchBtn.addEventListener('click', async () => {
+      // This tap is our autoplay gesture — unlock audio output now.
+      player.play().catch(() => {});
+      // Keep the screen (and audio pipeline) alive while acting as a speaker.
+      try { wakeLock = await navigator.wakeLock?.request('screen'); } catch (_) {}
+
+      searchBtn.disabled = true;
+      spinner.style.display = 'block';
+      devices.clear();
+      renderDevices();
+
+      if (!topic) {
+        setStatus('Locating your network…');
+        topic = await deriveTopic();
+      }
+      if (!topic) {
+        stopSearchUi();
+        manual.open = true;
+        return setStatus('Auto-search needs internet — use manual pairing below', 'err');
+      }
+
+      setStatus('Searching for devices…');
+      if (!(await ensureWs())) {
+        stopSearchUi();
+        manual.open = true;
+        return setStatus('Cannot reach pairing relay — use manual pairing below', 'err');
+      }
+
+      // Probe now and re-probe twice, in case the extension starts a bit later.
+      searchTimers.forEach(clearTimeout);
+      searchTimers = [0, 3000, 7000].map((t) =>
+        setTimeout(() => { if (!pc) publish({ kind: 'probe' }); }, t)
+      );
+      searchTimers.push(setTimeout(() => {
+        stopSearchUi();
+        if (devices.size === 0 && !pc) {
+          setStatus('No devices found — is the extension started? Try again.', 'err');
+        }
+      }, 12000));
+    });
+
+    function stopSearchUi() {
+      searchBtn.disabled = false;
+      spinner.style.display = 'none';
+    }
+
+    function renderDevices() {
+      devicesEl.innerHTML = '';
+      for (const [id, name] of devices) {
+        const btn = document.createElement('button');
+        btn.className = 'device';
+        btn.innerHTML = `<span class="icon">💻</span><span></span>`;
+        btn.querySelector('span:last-child').textContent = name;
+        btn.addEventListener('click', () => {
+          if (pc) return;
+          requestedId = id;
+          setStatus(`Connecting to ${name}…`);
+          publish({ kind: 'request', to: id });
+          // If no offer arrives, let the user try again.
+          setTimeout(() => {
+            if (!pc && requestedId === id) {
+              requestedId = null;
+              setStatus('No response — tap the device to retry', 'err');
+            }
+          }, 10000);
+        });
+        devicesEl.appendChild(btn);
+      }
+    }
+
+    // --- WebRTC (shared by auto and manual pairing) ---------------------------
+    // Takes the sender's offer, returns the encoded answer code.
+    async function setupPeer(offer) {
+      pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      });
+
+      pc.ontrack = (event) => {
+        // Minimize the receive-side jitter buffer for low latency.
+        try { event.receiver.playoutDelayHint = 0; } catch (_) {}
+        try { event.receiver.jitterBufferTarget = 0; } catch (_) {}
+        player.srcObject = event.streams[0];
+        player.play().catch(() =>
+          setStatus('Tap anywhere to allow audio playback', 'err')
+        );
+        startVisualizer(event.streams[0]);
+        startStats();
+      };
+
+      pc.onconnectionstatechange = () => {
+        if (!pc) return;
+        switch (pc.connectionState) {
+          case 'connected':
+            setStatus('🔊 Playing Chromebook audio', 'ok');
+            statusEl.classList.add('pulse');
+            searchBtn.classList.add('hidden');
+            spinner.style.display = 'none';
+            devicesEl.innerHTML = '';
+            manual.classList.add('hidden');
+            // Signaling is done — the audio is peer-to-peer from here on.
+            if (ws) { try { ws.close(); } catch (_) {} ws = null; }
+            break;
+          case 'disconnected':
+            // Often transient (Wi-Fi hiccup) — WebRTC usually recovers on
+            // its own and 'connected' will fire again.
+            statusEl.classList.remove('pulse');
+            setStatus('Connection unstable — trying to recover…', 'err');
+            break;
+          case 'failed':
+            statusEl.classList.remove('pulse');
+            setStatus('Stream lost — reload the page to reconnect', 'err');
+            break;
+        }
+      };
+
+      try {
+        await pc.setRemoteDescription(offer);
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        // Non-trickle ICE: wait for all candidates so the answer is
+        // complete in a single message / copy-paste.
+        await new Promise((resolve) => {
+          if (pc.iceGatheringState === 'complete') return resolve();
+          const timer = setTimeout(resolve, 3000);
+          pc.addEventListener('icegatheringstatechange', () => {
+            if (pc.iceGatheringState === 'complete') { clearTimeout(timer); resolve(); }
+          });
+        });
+
+        return await encodeCode(pc.localDescription.toJSON());
+      } catch (e) {
+        teardownPeer();
+        throw e;
+      }
+    }
+
+    function teardownPeer() {
+      if (pc) {
+        pc.onconnectionstatechange = null;
+        pc.close();
+        pc = null;
+      }
+    }
+
+    // --- manual pairing fallback ----------------------------------------------
+    manualConnectBtn.addEventListener('click', async () => {
+      if (pc) return; // already connecting/connected
+      const code = offerIn.value.trim();
+      if (!code) return setStatus('Paste the connection code first', 'err');
+      manualConnectBtn.disabled = true;
+
+      player.play().catch(() => {});
+      try { wakeLock = await navigator.wakeLock?.request('screen'); } catch (_) {}
+
+      try {
+        const offer = await decodeCode(code);
+        if (offer.type !== 'offer') throw new Error('not a connection code');
+        answerOut.value = await setupPeer(offer);
+        setStatus('Send the reply code to the Chromebook, then wait…');
+      } catch (e) {
+        manualConnectBtn.disabled = false;
+        setStatus('Could not use that code: ' + e.message, 'err');
+      }
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(answerOut.value);
+      } catch (_) {
+        // Clipboard API may be blocked on non-HTTPS pages — select instead
+        answerOut.select();
+        document.execCommand('copy');
+      }
+      copyBtn.textContent = '✅ Copied';
+      setTimeout(() => (copyBtn.textContent = '📋 Copy reply code'), 1500);
+    });
+
+    // A recovered tap anywhere retries playback if autoplay was blocked.
+    document.body.addEventListener('click', () => player.play().catch(() => {}));
+
+    // --- stats + visualizer -----------------------------------------------------
+    function startStats() {
+      clearInterval(statsTimer);
+      statsTimer = setInterval(async () => {
+        if (!pc) return;
+        const stats = await pc.getStats();
+        stats.forEach((s) => {
+          if (s.type === 'inbound-rtp' && s.kind === 'audio') {
+            metaEl.textContent =
+              `codec: opus · packets: ${s.packetsReceived ?? 0} · lost: ${s.packetsLost ?? 0} · ` +
+              `jitter: ${Math.round((s.jitter || 0) * 1000)} ms`;
+          }
+        });
+      }, 2000);
+    }
+
+    function startVisualizer(stream) {
+      viz.style.display = 'block';
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      // ontrack is not a user gesture, so the context may start suspended;
+      // the earlier tap gives us sticky activation, so resume() succeeds.
+      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 64;
+      ctx.createMediaStreamSource(stream).connect(analyser);
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      const g = viz.getContext('2d');
+      (function draw() {
+        requestAnimationFrame(draw);
+        analyser.getByteFrequencyData(data);
+        g.clearRect(0, 0, viz.width, viz.height);
+        const barW = viz.width / data.length;
+        data.forEach((v, i) => {
+          const h = (v / 255) * viz.height;
+          g.fillStyle = '#10b981';
+          g.fillRect(i * barW + 1, viz.height - h, barW - 2, h);
+        });
+      })();
+    }
+
+    // Re-acquire the wake lock when the tab becomes visible again.
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible' && wakeLock?.released) {
+        try { wakeLock = await navigator.wakeLock?.request('screen'); } catch (_) {}
+      }
+    });
+  </script>
+</body>
+</html>
