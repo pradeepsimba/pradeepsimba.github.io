@@ -1248,14 +1248,14 @@
       const W = viz.width;
       const H = viz.height;
       const barW = W / n;
-      g.fillStyle = '#10b981';
       (function draw() {
         vizRaf = requestAnimationFrame(draw);
         vizAnalyser.getByteFrequencyData(data);
         g.clearRect(0, 0, W, H);
+        g.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--success').trim() || '#10b981';
         for (let i = 0; i < n; i++) {
           const h = (data[i] / 255) * H;
-          g.fillRect(i * barW + 1, H - h, barW - 2, h);
+          if (h > 0.5) g.fillRect(i * barW + 1, H - h, barW - 2, h);
         }
       })();
     }
