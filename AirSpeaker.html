@@ -967,6 +967,11 @@
             break;
           case 'failed':
             statusEl.classList.remove('pulse');
+            // iceConnectionState doesn't always reach 'failed' itself (it can
+            // sit at 'disconnected' while the aggregate connectionState is
+            // what actually flips to 'failed') — diagnose here too, before
+            // teardownPeer() closes the connection and the stats go away.
+            diagnoseIceFailure(pc);
             teardownPeer(); // stops stats + viz and frees the connection
             requestedId = null;
             searchBtn.classList.remove('hidden');
@@ -1069,7 +1074,8 @@
           dlog('no candidate pair ever succeeded — most likely AP client isolation, a symmetric NAT, or a UDP-blocking firewall. ' +
             'This app has no TURN relay, only STUN, so it needs a working DIRECT path between the two devices. ' +
             'Try: same Wi-Fi band on both (5GHz vs 2.4GHz can be isolated separately), disable AP/client isolation ' +
-            'in your router settings, or test via a phone mobile hotspot to rule out the router.');
+            'in your router settings, or — if this phone is hosting a hotspot — its own firewall can block this ' +
+            'exact same way; try hosting the hotspot from the computer instead and have the phone join it.');
         }
       } catch (e) {
         dlog('could not read ICE stats: ' + e.message);
