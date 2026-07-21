@@ -511,6 +511,20 @@
     let myId = randId();
     let requestedId = null;   // device we asked to connect to
     let connecting = false;   // an offer is being processed right now
+    let pairedGen = null;     // generation of the offer we're currently answering
+
+    // Trickle supplement: this app is otherwise non-trickle (offer/answer
+    // carry a complete candidate set after a bounded wait, so the manual
+    // copy-paste code stays a single short string) — but some networks are
+    // simply slow or partially failing (e.g. a hotspot blocking STUN, where
+    // gathering can take 10s of seconds past any sane wait). Candidates that
+    // arrive after the answer's already been sent would otherwise be
+    // silently dropped even though they're real. Relaying them as they
+    // arrive costs nothing when gathering is fast and rescues the slow case.
+    function sendIceCandidate(candidate, gen) {
+      if (!requestedId || !candidate) return;
+      publish({ kind: 'ice', to: requestedId, gen, candidate: candidate.toJSON() });
+    }
     let searchTimers = [];
     const devices = new Map(); // id -> name
 
@@ -739,6 +753,7 @@
             setStatus('Connecting…');
             const offer = await decodeCode(m.payload);
             if (offer.type !== 'offer') throw new Error('bad offer');
+            pairedGen = offer.gen != null ? offer.gen : null;
             const answerCode = await setupPeer(offer);
             await publish({ kind: 'answer', to: m.from, payload: answerCode });
             dlog('answer sent');
@@ -754,6 +769,11 @@
           } finally {
             connecting = false;
           }
+          break;
+
+        case 'ice': // extension's own late-gathered candidate for our answer
+          if (!pc || m.gen !== pairedGen || !m.candidate) return;
+          try { await pc.addIceCandidate(m.candidate); } catch (_) {}
           break;
       }
     }
@@ -932,6 +952,16 @@
         if (!pc) return;
         dlog('ICE state: ' + pc.iceConnectionState);
         if (pc.iceConnectionState === 'failed') diagnoseIceFailure(pc);
+      };
+
+      // Trickle supplement: relays ANY candidate gathered for this answer,
+      // including ones that also end up embedded in the non-trickle answer
+      // below (harmless duplicates) — the ones that matter are stragglers
+      // that show up after the answer's already been sent.
+      const myGenForTrickle = pairedGen;
+      pc.onicecandidate = (e) => {
+        if (!e.candidate) return;
+        sendIceCandidate(e.candidate, myGenForTrickle);
       };
 
       pc.onconnectionstatechange = () => {
