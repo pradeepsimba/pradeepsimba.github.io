@@ -7,6 +7,7 @@
     <meta name="theme-color" content="#000000">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Canvas</title>
+
     <style>
         *, *::before, *::after {
             margin: 0;
@@ -17,7 +18,7 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
-            background-color: #121212;
+            background: #121212;
             color: #f0f0f0;
         }
 
@@ -27,29 +28,29 @@
             right: 20px;
             display: flex;
             gap: 15px;
-            z-index: 10;
+            z-index: 100;
         }
 
         button {
             padding: 12px 20px;
             background: #37474f;
-            color: #e0e0e0;
+            color: #fff;
             border: none;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            border-radius: 8px;
-            transition: background-color 0.3s ease;
+            transition: 0.3s;
         }
 
         button:hover {
             background: #546e7a;
         }
 
-        button#clearButton {
+        #clearButton {
             background: #d32f2f;
         }
 
-        button#clearButton:hover {
+        #clearButton:hover {
             background: #f44336;
         }
 
@@ -57,113 +58,153 @@
             display: block;
             width: 100vw;
             height: 100vh;
-            background-color: #121212;
+            background: #121212;
             touch-action: none;
+            cursor: crosshair;
         }
     </style>
 </head>
+
 <body>
-    <div class="controls">
-        <button id="maximizeButton">Fullscreen</button>
-        <button id="clearButton">C</button>
-    </div>
-    <canvas id="drawingCanvas"></canvas>
-    <script>
-        const canvas = document.getElementById('drawingCanvas');
-        const ctx = canvas.getContext('2d');
-        const maximizeButton = document.getElementById('maximizeButton');
-        const clearButton = document.getElementById('clearButton');
 
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
+<div class="controls">
+    <button id="maximizeButton">Fullscreen</button>
+    <button id="clearButton">C</button>
+</div>
 
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+<canvas id="drawingCanvas"></canvas>
 
-        let drawing = false;
-        let lastX = 0;
-        let lastY = 0;
+<script>
+const canvas = document.getElementById("drawingCanvas");
+const ctx = canvas.getContext("2d");
 
-        function getCoordinates(event) {
-            return {
-                x: event.clientX || (event.touches && event.touches[0].clientX),
-                y: event.clientY || (event.touches && event.touches[0].clientY)
-            };
-        }
+const maximizeButton = document.getElementById("maximizeButton");
+const clearButton = document.getElementById("clearButton");
 
-        function startDrawing(event) {
-            event.preventDefault();
-            drawing = true;
-            const { x, y } = getCoordinates(event);
-            lastX = x;
-            lastY = y;
-        }
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
 
-        function stopDrawing() {
-            drawing = false;
-        }
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
 
-        function draw(event) {
-            if (!drawing) return;
-            event.preventDefault();
-            const { x, y } = getCoordinates(event);
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#bbdefb';
+let drawing = false;
+let lastX = 0;
+let lastY = 0;
 
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(x, y);
-            ctx.stroke();
+// Brush settings
+ctx.lineWidth = 3;
+ctx.lineCap = "round";
+ctx.lineJoin = "round";
+ctx.strokeStyle = "#bbdefb";
+ctx.fillStyle = "#bbdefb";
 
-            lastX = x;
-            lastY = y;
-        }
+function getCoordinates(event) {
 
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseout', stopDrawing);
-        canvas.addEventListener('mousemove', draw);
+    const rect = canvas.getBoundingClientRect();
 
-        canvas.addEventListener('touchstart', startDrawing);
-        canvas.addEventListener('touchend', stopDrawing);
-        canvas.addEventListener('touchcancel', stopDrawing);
-        canvas.addEventListener('touchmove', draw, { passive: false });
+    if (event.touches && event.touches.length > 0) {
+        return {
+            x: event.touches[0].clientX - rect.left,
+            y: event.touches[0].clientY - rect.top
+        };
+    }
 
+    return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+    };
+}
 
-        function handleFullscreenChange() {
-            if (document.fullscreenElement) {
-                maximizeButton.style.display = 'none'; // Hide the button
-            } else {
-                maximizeButton.textContent = 'Fullscreen';
-                maximizeButton.style.display = 'block'; // Show the button
-            }
-        }
+function drawDot(x, y) {
+    ctx.beginPath();
+    ctx.arc(x, y, ctx.lineWidth / 2, 0, Math.PI * 2);
+    ctx.fill();
+}
 
-        maximizeButton.addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else {
-                document.exitFullscreen();
-            }
-        });
+function startDrawing(event) {
 
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
-        document.addEventListener('webkitfullscreenchange', handleFullscreenChange); /* For Safari */
-        document.addEventListener('mozfullscreenchange', handleFullscreenChange);    /* For Firefox */
-        document.addEventListener('msfullscreenchange', handleFullscreenChange);     /* For IE/Edge */
+    event.preventDefault();
 
-        clearButton.addEventListener('click', () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        });
-    </script>
-    <script>
-        if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js')
-            .then(() => console.log('✅ Service Worker registered'));
-        }
-  </script>
+    drawing = true;
+
+    const { x, y } = getCoordinates(event);
+
+    lastX = x;
+    lastY = y;
+
+    // Draw immediately on touch/click
+    drawDot(x, y);
+}
+
+function stopDrawing() {
+    drawing = false;
+}
+
+function draw(event) {
+
+    if (!drawing) return;
+
+    event.preventDefault();
+
+    const { x, y } = getCoordinates(event);
+
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+
+    lastX = x;
+    lastY = y;
+}
+
+// Mouse
+canvas.addEventListener("mousedown", startDrawing);
+canvas.addEventListener("mousemove", draw);
+canvas.addEventListener("mouseup", stopDrawing);
+canvas.addEventListener("mouseleave", stopDrawing);
+
+// Touch
+canvas.addEventListener("touchstart", startDrawing, { passive: false });
+canvas.addEventListener("touchmove", draw, { passive: false });
+canvas.addEventListener("touchend", stopDrawing);
+canvas.addEventListener("touchcancel", stopDrawing);
+
+// Fullscreen
+function handleFullscreenChange() {
+
+    if (document.fullscreenElement) {
+        maximizeButton.style.display = "none";
+    } else {
+        maximizeButton.style.display = "block";
+    }
+}
+
+maximizeButton.addEventListener("click", () => {
+
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+
+});
+
+document.addEventListener("fullscreenchange", handleFullscreenChange);
+
+// Clear
+clearButton.addEventListener("click", () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+});
+
+// Register Service Worker
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js")
+        .then(() => console.log("✅ Service Worker registered"))
+        .catch(err => console.error(err));
+}
+</script>
+
 </body>
 </html>
