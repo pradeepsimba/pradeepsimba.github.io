@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -81,35 +82,66 @@ const ctx = canvas.getContext("2d");
 const maximizeButton = document.getElementById("maximizeButton");
 const clearButton = document.getElementById("clearButton");
 
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
+// Brush settings
+const BRUSH_COLOR = "#bbdefb";
+const BRUSH_SIZE = 3;
 
 let drawing = false;
 let lastX = 0;
 let lastY = 0;
 
-// Brush settings
-ctx.lineWidth = 3;
-ctx.lineCap = "round";
-ctx.lineJoin = "round";
-ctx.strokeStyle = "#bbdefb";
-ctx.fillStyle = "#bbdefb";
+// Configure drawing context
+function configureContext() {
+    ctx.lineWidth = BRUSH_SIZE;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = BRUSH_COLOR;
+    ctx.fillStyle = BRUSH_COLOR;
+}
 
+// Resize canvas while preserving existing drawing
+function resizeCanvas() {
+
+    // Save existing drawing
+    const imageData = ctx.getImageData(
+        0, 0,
+        canvas.width,
+        canvas.height
+    );
+
+    const oldWidth = canvas.width;
+    const oldHeight = canvas.height;
+
+    // Get new dimensions
+    const newWidth = window.innerWidth;
+    const newHeight = window.innerHeight;
+
+    // Resize canvas only when necessary
+    if (oldWidth === newWidth && oldHeight === newHeight) {
+        return;
+    }
+
+    canvas.width = newWidth;
+    canvas.height = newHeight;
+
+    // Restore brush settings after canvas resize
+    configureContext();
+
+    // Restore existing drawing
+    ctx.putImageData(imageData, 0, 0);
+}
+
+// Initial canvas setup
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+configureContext();
+
+window.addEventListener("resize", resizeCanvas);
+
+// Get mouse/touch coordinates
 function getCoordinates(event) {
 
     const rect = canvas.getBoundingClientRect();
-
-    if (event.touches && event.touches.length > 0) {
-        return {
-            x: event.touches[0].clientX - rect.left,
-            y: event.touches[0].clientY - rect.top
-        };
-    }
 
     return {
         x: event.clientX - rect.left,
@@ -117,12 +149,14 @@ function getCoordinates(event) {
     };
 }
 
+// Draw dot
 function drawDot(x, y) {
     ctx.beginPath();
     ctx.arc(x, y, ctx.lineWidth / 2, 0, Math.PI * 2);
     ctx.fill();
 }
 
+// Start drawing
 function startDrawing(event) {
 
     event.preventDefault();
@@ -134,14 +168,15 @@ function startDrawing(event) {
     lastX = x;
     lastY = y;
 
-    // Draw immediately on touch/click
     drawDot(x, y);
 }
 
+// Stop drawing
 function stopDrawing() {
     drawing = false;
 }
 
+// Draw
 function draw(event) {
 
     if (!drawing) return;
@@ -159,13 +194,12 @@ function draw(event) {
     lastY = y;
 }
 
-// Mouse
+// Mouse and touch support
 canvas.addEventListener("mousedown", startDrawing);
 canvas.addEventListener("mousemove", draw);
 canvas.addEventListener("mouseup", stopDrawing);
 canvas.addEventListener("mouseleave", stopDrawing);
 
-// Touch
 canvas.addEventListener("touchstart", startDrawing, { passive: false });
 canvas.addEventListener("touchmove", draw, { passive: false });
 canvas.addEventListener("touchend", stopDrawing);
@@ -174,36 +208,41 @@ canvas.addEventListener("touchcancel", stopDrawing);
 // Fullscreen
 function handleFullscreenChange() {
 
-    if (document.fullscreenElement) {
-        maximizeButton.style.display = "none";
-    } else {
-        maximizeButton.style.display = "block";
-    }
+    maximizeButton.style.display =
+        document.fullscreenElement ? "none" : "block";
+
+    // Resize and preserve drawing after fullscreen changes
+    resizeCanvas();
 }
 
-maximizeButton.addEventListener("click", () => {
+maximizeButton.addEventListener("click", async () => {
 
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-    } else {
-        document.exitFullscreen();
+    try {
+        if (!document.fullscreenElement) {
+            await document.documentElement.requestFullscreen();
+        } else {
+            await document.exitFullscreen();
+        }
+    } catch (error) {
+        console.error("Fullscreen error:", error);
     }
 
 });
 
 document.addEventListener("fullscreenchange", handleFullscreenChange);
 
-// Clear
+// Clear canvas
 clearButton.addEventListener("click", () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 });
 
-// Register Service Worker
+// Service Worker
 if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js")
-        .then(() => console.log("✅ Service Worker registered"))
-        .catch(err => console.error(err));
+        .then(() => console.log("Service Worker registered"))
+        .catch(error => console.error("Service Worker error:", error));
 }
+
 </script>
 
 </body>
